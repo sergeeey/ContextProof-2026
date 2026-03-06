@@ -9,7 +9,6 @@
 """
 
 import pytest
-
 from ccbm.verifier.numeric_invariants import (
     InvariantCheck,
     NumericInvariantVerifier,

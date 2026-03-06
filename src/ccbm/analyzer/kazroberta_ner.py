@@ -14,6 +14,7 @@ Dataset: KazNERD
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from enum import Enum
 
@@ -103,6 +104,10 @@ class KazRoBERTaNER:
         """
         if self._is_loaded:
             return True
+
+        if os.getenv("CCBM_ENABLE_NER_MODEL", "0") != "1":
+            logger.info("CCBM_ENABLE_NER_MODEL != 1, используем fallback NER (паттерны)")
+            return False
 
         try:
             logger.info(f"Загрузка KazRoBERTa NER: {self.model_name}")

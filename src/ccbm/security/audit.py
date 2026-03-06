@@ -17,7 +17,7 @@ import logging
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -371,7 +371,7 @@ class SecurityAuditor:
             verdict = "✅ PASS"
 
         return SecurityReport(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             project_name="CCBM",
             total_findings=len(self.findings),
             critical=severity_counts["CRITICAL"],

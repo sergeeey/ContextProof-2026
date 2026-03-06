@@ -226,7 +226,6 @@ class TestIntegration:
     def test_ccbm_integration(self):
         """Интеграция с CCBM компонентами."""
         import numpy as np
-
         from ccbm import ChernoffVerifier
 
         audit = GlassBoxAudit()

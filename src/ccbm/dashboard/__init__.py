@@ -4,4 +4,4 @@ CCBM Dashboard Module
 Визуализация метрик и аудита через Streamlit.
 """
 
-__all__ = []
+__all__: list[str] = []

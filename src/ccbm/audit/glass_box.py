@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, cast
 
 from ccbm.audit import AuditEngine
 
@@ -123,7 +123,7 @@ class GlassBoxAudit:
             Merkle root всех записей
         """
         self._merkle_root = self.audit_engine.finalize()
-        return self._merkle_root
+        return self._merkle_root or ""
 
     def get_audit_trail(self) -> list[dict]:
         """
@@ -207,7 +207,7 @@ class GlassBoxAudit:
         if not self._merkle_root:
             self.finalize()
 
-        return self.audit_engine.export_for_blockchain()
+        return cast(dict[str, Any], self.audit_engine.export_for_blockchain())
 
     @staticmethod
     def _compute_entry_hash(entry: AuditEntry) -> str:
@@ -239,8 +239,8 @@ class GlassBoxAudit:
                 "integrity_valid": True,
             }
 
-        decisions_by_agent = {}
-        decisions_by_type = {}
+        decisions_by_agent: dict[str, int] = {}
+        decisions_by_type: dict[str, int] = {}
         avg_confidence = sum(e.confidence for e in self.entries) / len(self.entries)
 
         for entry in self.entries:
@@ -290,7 +290,7 @@ def create_glass_box_report(audit: GlassBoxAudit) -> GlassBoxReport:
         GlassBoxReport со всеми проверками
     """
     return GlassBoxReport(
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         total_decisions=len(audit.entries),
         merkle_root=audit._merkle_root or "",
         integrity_valid=audit.verify_integrity(),

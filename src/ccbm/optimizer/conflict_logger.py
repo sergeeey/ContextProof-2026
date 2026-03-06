@@ -222,13 +222,13 @@ class ConflictLogger:
             }
 
         # Подсчёт по типам
-        by_type = {}
+        by_type: dict[str, int] = {}
         for conflict in self.conflicts:
             type_name = conflict.conflict_type.value
             by_type[type_name] = by_type.get(type_name, 0) + 1
 
         # Подсчёт по критичности
-        by_severity = {}
+        by_severity: dict[str, int] = {}
         for conflict in self.conflicts:
             severity = conflict.severity
             by_severity[severity] = by_severity.get(severity, 0) + 1

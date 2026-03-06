@@ -14,9 +14,14 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
-from llmlingua import PromptCompressor
+try:
+    from llmlingua import PromptCompressor
+    LLMLINGUA_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    PromptCompressor = Any
+    LLMLINGUA_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +94,10 @@ class LLMLinguaCompressor:
     def compressor(self) -> PromptCompressor:
         """Ленивая инициализация компрессора."""
         if self._compressor is None:
+            if not LLMLINGUA_AVAILABLE:
+                raise RuntimeError(
+                    "llmlingua is not installed. Install with: pip install 'ccbm[compression]'"
+                )
             logger.info(f"Инициализация LLMLingua: {self.model_name}")
             self._compressor = PromptCompressor(
                 model_name=self.model_name,
@@ -163,7 +172,7 @@ class LLMLinguaCompressor:
         context: str = "",
         rank_method: str = "llmlingua2",
         **kwargs,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Сжатие промпта через LLMLingua.
 
@@ -177,13 +186,13 @@ class LLMLinguaCompressor:
         Returns:
             Dict с compressed_prompt и другой информацией
         """
-        return self.compressor.compress_prompt(
+        return cast(dict[str, Any], self.compressor.compress_prompt(
             texts,
             instruction=instruction,
             context=context,
             ratio=target_token / sum(self._estimate_tokens(t) for t in texts) if texts else 0.5,
             **kwargs,
-        )
+        ))
 
     def compress_long(
         self,

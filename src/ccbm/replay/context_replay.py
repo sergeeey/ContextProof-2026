@@ -100,7 +100,8 @@ class ContextSession:
         if not compressed_events:
             return ""
 
-        return compressed_events[-1].data.get("compressed_text", "")
+        value = compressed_events[-1].data.get("compressed_text", "")
+        return value if isinstance(value, str) else ""
 
     def get_removed_segments(self) -> list[str]:
         """

@@ -184,19 +184,19 @@ class FaithfulnessAnalyzer:
             }
 
         # По типам
-        by_type = {}
+        by_type: dict[str, int] = {}
         for error in self.errors:
             etype = error.error_type.value
             by_type[etype] = by_type.get(etype, 0) + 1
 
         # По критичности
-        by_severity = {}
+        by_severity: dict[str, int] = {}
         for error in self.errors:
             sev = error.severity
             by_severity[sev] = by_severity.get(sev, 0) + 1
 
         # По категориям
-        by_category = {}
+        by_category: dict[str, int] = {}
         for error in self.errors:
             cat = error.metadata.get("category", "unknown") if error.metadata else "unknown"
             by_category[cat] = by_category.get(cat, 0) + 1

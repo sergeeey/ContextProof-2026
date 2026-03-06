@@ -524,12 +524,12 @@ class QAGoldenSet:
         Returns:
             Словарь со статистикой
         """
-        by_category = {}
+        by_category: dict[str, int] = {}
         for qa in self.qa_pairs:
             cat = qa.category.value
             by_category[cat] = by_category.get(cat, 0) + 1
 
-        by_type = {}
+        by_type: dict[str, int] = {}
         for test in self.adversarial_tests:
             t = test.test_type
             by_type[t] = by_type.get(t, 0) + 1

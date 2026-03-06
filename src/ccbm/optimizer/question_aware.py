@@ -15,7 +15,9 @@ Inspired by LongLLMLingua (Microsoft, 2024):
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
+from typing import cast
 
 from ccbm.analyzer import CriticalityLevel, Span
 
@@ -59,12 +61,18 @@ class QuestionAwareCompressor:
     def model(self):
         """Ленивая загрузка модели."""
         if self._model is None:
+            if os.getenv("CCBM_ENABLE_SEMANTIC_MODEL", "0") != "1":
+                self._model = "fallback"
+                return self._model
             try:
                 from sentence_transformers import SentenceTransformer
+
                 self._model = SentenceTransformer(self.model_name)
                 logger.info(f"Загружена модель для question-aware: {self.model_name}")
-            except ImportError:
-                logger.warning("sentence-transformers не установлен. Используем fallback (keyword matching)")
+            except Exception as e:
+                logger.warning(
+                    f"Sentence-transformers недоступен ({e}). Используем fallback (keyword matching)"
+                )
                 self._model = "fallback"
         return self._model
 
@@ -132,7 +140,7 @@ class QuestionAwareCompressor:
         l4_spans = [r for r in ranked_spans if r.span.level == CriticalityLevel.L4]
 
         # 1. L1 всегда в начало (критичные данные)
-        result_spans = [r.span for r in l1_spans]
+        result_spans: list[Span | str] = [r.span for r in l1_spans]
 
         # 2. L2 (юридические) → следующие
         result_spans.extend([r.span for r in l2_spans])
@@ -141,8 +149,9 @@ class QuestionAwareCompressor:
         result_spans.extend([r.span for r in l3_spans])
 
         # 4. L4 (контекст) → с учётом релевантности и бюджета
-        current_length = sum(len(s.text) for s in result_spans)
-        max(0, target_budget - current_length)
+        current_length = 0
+        for item in result_spans:
+            current_length += len(item.text) if isinstance(item, Span) else len(item)
 
         # Сортируем L4 по релевантности
         l4_spans.sort(key=lambda r: r.final_score, reverse=True)
@@ -207,7 +216,7 @@ class QuestionAwareCompressor:
             embeddings = self.model.encode([text, question], convert_to_tensor=True)
             similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
 
-            return max(0.0, min(1.0, similarity))
+            return max(0.0, min(1.0, cast(float, similarity)))
 
         except Exception as e:
             logger.warning(f"Ошибка semantic similarity: {e}")

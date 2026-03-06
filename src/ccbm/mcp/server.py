@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from mcp.server import Server
@@ -323,7 +323,7 @@ async def analyze_spans(
         "context_fill": "L4_context_fill",
     }
 
-    grouped = {
+    grouped: dict[str, list[dict[str, Any]]] = {
         "L1_critical_numbers": [],
         "L2_legal_policies": [],
         "L3_pii": [],
@@ -355,7 +355,7 @@ async def analyze_spans(
 async def get_audit_receipt(
     original_data: str,
     compressed_data: str,
-    metadata: dict[str, Any] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> dict:
     """
     Получение аудиторской квитанции.
@@ -383,7 +383,7 @@ async def get_audit_receipt(
         "merkle_root": merkle_root,
         "is_verified": is_verified,
         "report": report.to_dict(),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -412,7 +412,7 @@ async def read_resource(uri: str) -> str:
             "version": "2.0.0",
             "tests_passed": 291,
             "components": 16,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         return json.dumps(stats, indent=2)
 

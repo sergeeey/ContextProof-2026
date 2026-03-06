@@ -9,7 +9,6 @@ Optimization Engine — сжатие и фильтрация контекста.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 from ccbm.analyzer import CriticalityLevel, Span
 

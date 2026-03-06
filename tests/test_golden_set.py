@@ -3,7 +3,6 @@
 """
 
 import pytest
-
 from ccbm.quality.golden_set_qa import (
     AnswerType,
     QACategory,

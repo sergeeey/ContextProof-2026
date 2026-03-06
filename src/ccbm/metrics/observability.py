@@ -227,7 +227,7 @@ class CCBBMetrics:
         Returns:
             Словарь со сводкой
         """
-        summary = {}
+        summary: dict[str, Any] = {}
 
         for name, points in self._metrics.items():
             if not points:
@@ -251,7 +251,7 @@ class CCBBMetrics:
         # Дополнительно: latency breakdown по стадиям
         latency_points = self._metrics["latency_breakdown"]
         if latency_points:
-            by_stage = {}
+            by_stage: dict[str, list[float]] = {}
             for point in latency_points:
                 stage = point.labels.get("stage", "unknown")
                 if stage not in by_stage:
@@ -271,7 +271,7 @@ class CCBBMetrics:
         # Compression ratio по доменам
         compression_points = self._metrics["compression_ratio"]
         if compression_points:
-            by_domain = {}
+            by_domain: dict[str, list[float]] = {}
             for point in compression_points:
                 domain = point.labels.get("domain", "general")
                 if domain not in by_domain:
@@ -307,7 +307,7 @@ class CCBBMetrics:
             metric_name = f"ccbm_{name}"
 
             # Group by labels
-            by_labels = {}
+            by_labels: dict[str, list[float]] = {}
             for point in points:
                 label_key = ",".join(f'{k}="{v}"' for k, v in sorted(point.labels.items()))
                 if label_key not in by_labels:

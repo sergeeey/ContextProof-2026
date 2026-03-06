@@ -19,9 +19,9 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -267,7 +267,7 @@ class AuditEngine:
         leaf_data = json.dumps({
             "original": original_hash,
             "compressed": compressed_hash,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
         }, sort_keys=True)
         leaf_hash = hashlib.sha256(leaf_data.encode('utf-8')).hexdigest()
@@ -278,7 +278,7 @@ class AuditEngine:
         receipt_id = self._generate_receipt_id()
         receipt = VerificationReceipt(
             receipt_id=receipt_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             original_hash=original_hash,
             compressed_hash=compressed_hash,
             merkle_root="",  # Будет установлен после финализации
@@ -378,7 +378,7 @@ class AuditEngine:
 
         return {
             "merkle_root": self._root_hash,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_leaves": len(self._leaves),
             "receipts_count": len(self._receipts),
             "leaf_hashes": self._leaves,
@@ -433,7 +433,7 @@ def create_audit_report(engine: AuditEngine) -> AuditReport:
     all_verified = all(engine.verify_receipt(r) for r in receipts) if receipts else True
 
     return AuditReport(
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         total_transformations=len(receipts),
         merkle_root=engine._root_hash or "",
         receipts=receipts,

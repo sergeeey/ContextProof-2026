@@ -6,7 +6,6 @@
 
 import numpy as np
 import pytest
-
 from ccbm.verifier.chernoff_bound import (
     ChernoffOrder,
     ChernoffVerifier,

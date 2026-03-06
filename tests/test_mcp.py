@@ -8,7 +8,6 @@
 import json
 
 import pytest
-
 from ccbm.mcp.server import (
     analyze_spans,
     get_audit_receipt,

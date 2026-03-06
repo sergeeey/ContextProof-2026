@@ -390,10 +390,10 @@ def compute_certified_bound(
 
     # Режим с известным точным значением
     if exact_price is not None:
-        b_values = [abs(v - exact_price) * (n ** p_eff) for n, v in prices.items()]
-        b_values = [b for b in b_values if np.isfinite(b)]
+        exact_b_values = [abs(v - exact_price) * (n ** p_eff) for n, v in prices.items()]
+        exact_b_values = [b for b in exact_b_values if np.isfinite(b)]
 
-        if not b_values:
+        if not exact_b_values:
             return CertifiedBound(
                 bound=0.0,
                 effective_order=p_eff,
@@ -404,7 +404,7 @@ def compute_certified_bound(
                 is_certified=True,
             )
 
-        b_const = float(max(b_values))
+        b_const = float(max(exact_b_values))
         method = "exact comparison"
 
         # Используем непосредственную ошибку для n_target
