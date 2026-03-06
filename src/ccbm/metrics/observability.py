@@ -38,7 +38,7 @@ class MetricPoint:
 class CCBBMetrics:
     """
     Сборщик метрик для CCBM.
-    
+
     Метрики:
     - latency_breakdown{stage}
     - compression_ratio{domain}
@@ -66,7 +66,7 @@ class CCBBMetrics:
     def start_stage(self, stage: str):
         """
         Начало стадии для замера latency.
-        
+
         Args:
             stage: Название стадии (analyze/compress/verify/audit)
         """
@@ -98,7 +98,7 @@ class CCBBMetrics:
     def record_compression_ratio(self, ratio: float, domain: str = "general"):
         """
         Запись коэффициента сжатия.
-        
+
         Args:
             ratio: Коэффициент сжатия
             domain: Домен (financial/legal/medical/general)
@@ -114,7 +114,7 @@ class CCBBMetrics:
     def record_faithfulness_score(self, score: float):
         """
         Запись faithfulness score.
-        
+
         Args:
             score: Faithfulness score (0-1)
         """
@@ -129,7 +129,7 @@ class CCBBMetrics:
     def record_certificate_fail(self, reason: str):
         """
         Запись failure сертификата.
-        
+
         Args:
             reason: Причина failure
         """
@@ -144,7 +144,7 @@ class CCBBMetrics:
     def record_pii_detection(self, detected: int, total: int):
         """
         Запись PII detection recall.
-        
+
         Args:
             detected: Количество обнаруженных PII
             total: Общее количество PII
@@ -162,7 +162,7 @@ class CCBBMetrics:
     def record_pii_leak(self, leaked: int, total: int):
         """
         Запись PII leak rate.
-        
+
         Args:
             leaked: Количество утекших PII
             total: Общее количество PII
@@ -180,7 +180,7 @@ class CCBBMetrics:
     def record_conflict(self, conflict_count: int, total_operations: int):
         """
         Запись conflict rate.
-        
+
         Args:
             conflict_count: Количество конфликтов
             total_operations: Общее количество операций
@@ -198,11 +198,11 @@ class CCBBMetrics:
     def get_metric(self, name: str, window_seconds: float | None = None) -> list[MetricPoint]:
         """
         Получение метрики.
-        
+
         Args:
             name: Название метрики
             window_seconds: Временное окно (None = все данные)
-            
+
         Returns:
             Список MetricPoint
         """
@@ -223,7 +223,7 @@ class CCBBMetrics:
     def get_summary(self) -> dict[str, Any]:
         """
         Получение сводки всех метрик.
-        
+
         Returns:
             Словарь со сводкой
         """
@@ -293,7 +293,7 @@ class CCBBMetrics:
     def export_prometheus(self) -> str:
         """
         Экспорт в формате Prometheus.
-        
+
         Returns:
             Строка в формате Prometheus
         """
@@ -338,7 +338,7 @@ def get_metrics() -> CCBBMetrics:
 class measure_stage:
     """
     Context manager для замера стадии.
-    
+
     Usage:
         with measure_stage("analyze"):
             # код стадии

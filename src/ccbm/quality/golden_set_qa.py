@@ -91,7 +91,7 @@ class AdversarialTest:
 class QAGoldenSet:
     """
     Golden Set для QA Faithfulness тестирования.
-    
+
     Содержит:
     - 30 QA пар
     - 10 Adversarial тестов
@@ -474,10 +474,10 @@ class QAGoldenSet:
     def get_qa_pairs(self, category: QACategory | None = None) -> list[QAPair]:
         """
         Получение QA пар с фильтрацией.
-        
+
         Args:
             category: Фильтр по категории
-            
+
         Returns:
             Список QA пар
         """
@@ -488,10 +488,10 @@ class QAGoldenSet:
     def get_adversarial_tests(self, test_type: str | None = None) -> list[AdversarialTest]:
         """
         Получение adversarial тестов с фильтрацией.
-        
+
         Args:
             test_type: Фильтр по типу теста
-            
+
         Returns:
             Список adversarial тестов
         """
@@ -502,7 +502,7 @@ class QAGoldenSet:
     def export_to_json(self, path: str = "golden_set_qa.json"):
         """
         Экспорт в JSON.
-        
+
         Args:
             path: Путь к файлу
         """
@@ -520,7 +520,7 @@ class QAGoldenSet:
     def get_statistics(self) -> dict[str, Any]:
         """
         Получение статистики Golden Set.
-        
+
         Returns:
             Словарь со статистикой
         """

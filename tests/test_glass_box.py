@@ -193,7 +193,7 @@ class TestIntegration:
         audit = GlassBoxAudit()
 
         # Логирование решений
-        entry1 = audit.log_decision(
+        audit.log_decision(
             agent="ChernoffVerifier",
             decision="VERIFIED",
             confidence=0.97,
@@ -201,7 +201,7 @@ class TestIntegration:
             metadata={"test": "data1"},
         )
 
-        entry2 = audit.log_decision(
+        audit.log_decision(
             agent="AuditEngine",
             decision="VALID",
             confidence=0.99,

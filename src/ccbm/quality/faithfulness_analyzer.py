@@ -58,7 +58,7 @@ class FaithfulnessError:
 class FaithfulnessAnalyzer:
     """
     Анализатор ошибок faithfulness.
-    
+
     Использование:
     1. Прогнать QA тесты на сжатом контексте
     2. Сравнить ответы с оригиналом
@@ -80,12 +80,12 @@ class FaithfulnessAnalyzer:
     ) -> FaithfulnessError | None:
         """
         Анализ одной QA пары.
-        
+
         Args:
             qa_pair: QA пара
             compressed_context: Сжатый контекст
             compressed_answer: Ответ на сжатом контексте
-            
+
         Returns:
             FaithfulnessError если есть ошибка, иначе None
         """
@@ -170,7 +170,7 @@ class FaithfulnessAnalyzer:
     def get_statistics(self) -> dict[str, Any]:
         """
         Получение статистики ошибок.
-        
+
         Returns:
             Словарь со статистикой
         """
@@ -218,7 +218,7 @@ class FaithfulnessAnalyzer:
     def get_recommendations(self) -> list[dict[str, str]]:
         """
         Получение рекомендаций по улучшению.
-        
+
         Returns:
             Список рекомендаций
         """
@@ -284,7 +284,7 @@ class FaithfulnessAnalyzer:
     def export_report(self, path: str = "faithfulness_error_report.json"):
         """
         Экспорт отчёта об ошибках.
-        
+
         Args:
             path: Путь к файлу
         """
@@ -306,11 +306,11 @@ def analyze_faithfulness(
 ) -> dict[str, Any]:
     """
     Полный анализ faithfulness.
-    
+
     Args:
         compression_func: Функция сжатия (context) -> compressed_context
         qa_func: Функция QA (context, question) -> answer
-        
+
     Returns:
         Отчёт с метриками и рекомендациями
     """

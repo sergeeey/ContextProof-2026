@@ -52,12 +52,12 @@ class TwoStageResult:
 class TwoStageCompressor:
     """
     Двухэтапный компрессор для CCBM.
-    
+
     Stage 1: Coarse-grain filter (O(n))
     - Удаление дубликатов
     - Удаление stop words (для L4)
     - Удаление "мусорных" паттернов
-    
+
     Stage 2: Fine-grain с верификацией (O(n log n))
     - L1: Zero-loss сохранение
     - L2-L4: Chernoff-aware сжатие
@@ -83,7 +83,7 @@ class TwoStageCompressor:
     def __init__(self, aggressive: bool = False):
         """
         Инициализация.
-        
+
         Args:
             aggressive: Агрессивный режим (больше удаления на stage 1)
         """
@@ -93,11 +93,11 @@ class TwoStageCompressor:
     def compress(self, text: str, spans: list[Span] | None = None) -> TwoStageResult:
         """
         Двухэтапное сжатие.
-        
+
         Args:
             text: Исходный текст
             spans: Список спанов (если есть, иначе будет создан)
-            
+
         Returns:
             TwoStageResult
         """
@@ -141,11 +141,11 @@ class TwoStageCompressor:
     def _coarse_filter(self, text: str, spans: list[Span] | None = None) -> str:
         """
         Stage 1: Coarse-grain filter.
-        
+
         Args:
             text: Исходный текст
             spans: Список спанов (для сохранения L1-L2)
-            
+
         Returns:
             Отфильтрованный текст
         """
@@ -167,10 +167,10 @@ class TwoStageCompressor:
     def _remove_stop_words(self, text: str) -> str:
         """
         Удаление stop words.
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Текст без stop words
         """
@@ -187,10 +187,10 @@ class TwoStageCompressor:
     def _remove_noise_patterns(self, text: str) -> str:
         """
         Удаление "мусорных" паттернов.
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Очищенный текст
         """
@@ -210,10 +210,10 @@ class TwoStageCompressor:
     def _fine_compress(self, text: str) -> str:
         """
         Stage 2: Fine-grain сжатие.
-        
+
         Args:
             text: Текст после stage 1
-            
+
         Returns:
             Сжатый текст
         """
@@ -254,12 +254,12 @@ def compress_two_stage(
 ) -> TwoStageResult:
     """
     Двухэтапное сжатие текста.
-    
+
     Args:
         text: Исходный текст
         spans: Список спанов (опционально)
         config: Конфигурация
-        
+
     Returns:
         TwoStageResult
     """

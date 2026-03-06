@@ -28,7 +28,7 @@ class OptimizationResult:
 class OptimizationEngine:
     """
     Движок оптимизации контекста.
-    
+
     Применяет различные стратегии сжатия в зависимости от уровня критичности:
     - L1: Zero-loss (без потерь)
     - L2: Template matching с сохранением семантики
@@ -39,7 +39,7 @@ class OptimizationEngine:
     def __init__(self, target_budget: int = 4000):
         """
         Инициализация движка оптимизации.
-        
+
         Args:
             target_budget: Целевой бюджет токенов
         """
@@ -54,10 +54,10 @@ class OptimizationEngine:
     def optimize(self, spans: list[Span]) -> OptimizationResult:
         """
         Оптимизация набора спанов.
-        
+
         Args:
             spans: Список спанов от CriticalityAnalyzer
-            
+
         Returns:
             Результат оптимизации
         """
@@ -120,7 +120,7 @@ class OptimizationEngine:
     def _compress_context(self, span: Span) -> Span:
         """
         Сжатие контекстного наполнения.
-        
+
         TODO: Интеграция с LLMLingua для экстрактивной суммаризации
         """
         # Простая эвристика: удаление лишних пробелов и сокращение

@@ -38,7 +38,7 @@ class Span:
 class CriticalityAnalyzer:
     """
     Анализатор критичности для классификации спанов.
-    
+
     Использует гибридный подход:
     - Регулярные выражения для структурированных данных (ИИН, даты, числа)
     - NER модели для PII (KazRoBERTa для казахского языка)
@@ -55,7 +55,7 @@ class CriticalityAnalyzer:
     def __init__(self, language: str = "kk"):
         """
         Инициализация анализатора.
-        
+
         Args:
             language: Язык обработки ('kk' для казахского, 'ru' для русского)
         """
@@ -65,10 +65,10 @@ class CriticalityAnalyzer:
     def analyze(self, text: str) -> list[Span]:
         """
         Анализ текста и классификация спанов.
-        
+
         Args:
             text: Входной текст для анализа
-            
+
         Returns:
             Список спанов с уровнями критичности
         """
@@ -170,10 +170,10 @@ class CriticalityAnalyzer:
     def _extract_pii_ner(self, text: str) -> list[Span]:
         """
         Извлечение PII через NER модель (KazRoBERTa).
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Список L3 спанов (PII)
         """
@@ -205,10 +205,10 @@ class CriticalityAnalyzer:
     def validate_iin(self, iin: str) -> bool:
         """
         Валидация ИИН по алгоритму модуля 11.
-        
+
         Args:
             iin: 12-значный ИИН
-            
+
         Returns:
             True если ИИН валиден
         """
@@ -219,7 +219,7 @@ class CriticalityAnalyzer:
         digits = [int(d) for d in iin]
 
         # Первая контрольная сумма
-        sum1 = sum(w * d for w, d in zip(weights[:11], digits[:11]))
+        sum1 = sum(w * d for w, d in zip(weights[:11], digits[:11], strict=False))
         ctrl1 = sum1 % 11
 
         if ctrl1 == 10:
@@ -230,7 +230,7 @@ class CriticalityAnalyzer:
 
         # Вторая контрольная сумма (для юридических лиц)
         weights2 = [3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
-        sum2 = sum(w * d for w, d in zip(weights2, digits))
+        sum2 = sum(w * d for w, d in zip(weights2, digits, strict=False))
         ctrl2 = sum2 % 11
 
         return ctrl2 == digits[11] if ctrl2 != 10 else False

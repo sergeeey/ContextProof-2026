@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class FaithfulnessOptimizedCompressor:
     """
     Компрессор с оптимизацией для faithfulness 95%+.
-    
+
     Улучшения относительно базового OptimizationEngine:
     1. L1 Retention Enforcement
     2. Numeric Invariant Protection
@@ -42,7 +42,7 @@ class FaithfulnessOptimizedCompressor:
     ):
         """
         Инициализация компрессора.
-        
+
         Args:
             enable_nli: Включить NLI entailment check
             enable_bertscore: Включить BERTScore validation
@@ -74,12 +74,12 @@ class FaithfulnessOptimizedCompressor:
     ) -> tuple[str, dict[str, Any]]:
         """
         Сжатие с оптимизацией faithfulness.
-        
+
         Args:
             text: Текст для сжатия
             target_budget: Целевой бюджет токенов
             domain: Домен (financial/legal/medical/general)
-            
+
         Returns:
             (сжатый текст, метаданные)
         """
@@ -152,11 +152,11 @@ class FaithfulnessOptimizedCompressor:
     ) -> float:
         """
         Проверка numeric drift.
-        
+
         Args:
             l1_spans: L1 спаны с числами
             compressed_text: Сжатый текст
-            
+
         Returns:
             % чисел с drift
         """
@@ -201,12 +201,12 @@ class FaithfulnessOptimizedCompressor:
     ) -> OptimizationResult:
         """
         Принудительное сохранение L1 данных.
-        
+
         Args:
             original_text: Оригинальный текст
             result: Результат оптимизации
             l1_spans: L1 спаны
-            
+
         Returns:
             Улучшенный результат
         """
@@ -234,11 +234,11 @@ class FaithfulnessOptimizedCompressor:
     def _check_nli_entailment(self, original: str, compressed: str) -> float:
         """
         NLI entailment check.
-        
+
         Args:
             original: Оригинальный текст
             compressed: Сжатый текст
-            
+
         Returns:
             Entailment score (0-1)
         """
@@ -249,11 +249,11 @@ class FaithfulnessOptimizedCompressor:
     def _check_bertscore(self, original: str, compressed: str) -> float:
         """
         BERTScore validation.
-        
+
         Args:
             original: Оригинальный текст
             compressed: Сжатый текст
-            
+
         Returns:
             BERTScore F1 (0-1)
         """
@@ -275,19 +275,19 @@ class FaithfulnessOptimizedCompressor:
     ) -> float:
         """
         Вычисление faithfulness score.
-        
+
         Формула:
         faithfulness = 0.4 * l1_retention
                      + 0.3 * (1 - numeric_drift)
                      + 0.2 * nli_score
                      + 0.1 * bert_score
-        
+
         Args:
             l1_retention: % сохранения L1
             numeric_drift: % numeric drift
             nli_score: NLI entailment score
             bert_score: BERTScore F1
-            
+
         Returns:
             Faithfulness score (0-1)
         """
@@ -303,7 +303,7 @@ class FaithfulnessOptimizedCompressor:
     def get_stats(self) -> dict[str, Any]:
         """
         Получение статистики компрессора.
-        
+
         Returns:
             Словарь со статистикой
         """
@@ -324,14 +324,14 @@ def compress_with_faithfulness(
 ) -> tuple[str, dict[str, Any]]:
     """
     Быстрая компрессия с faithfulness оптимизацией.
-    
+
     Args:
         text: Текст для сжатия
         target_budget: Целевой бюджет токенов
         domain: Домен
         enable_nli: Включить NLI
         enable_bertscore: Включить BERTScore
-        
+
     Returns:
         (сжатый текст, метаданные)
     """

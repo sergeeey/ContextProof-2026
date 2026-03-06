@@ -33,7 +33,7 @@ class InvariantCheck:
 class NumericInvariantVerifier:
     """
     Верификатор числовых инвариантов для CCBM.
-    
+
     Применение:
     1. Вычисляем инварианты до сжатия (суммы, средние, контрольные суммы ИИН)
     2. Вычисляем инварианты после сжатия
@@ -56,7 +56,7 @@ class NumericInvariantVerifier:
     ):
         """
         Инициализация верификатора.
-        
+
         Args:
             domain: Домен данных (financial/legal/medical/general)
             safety_factor: Коэффициент запаса для границ
@@ -73,14 +73,14 @@ class NumericInvariantVerifier:
     def compute_iin_checksum(self, iin: str) -> tuple[int, int]:
         """
         Вычисление контрольных сумм ИИН.
-        
+
         Алгоритм модуля 11 для РК:
         1-я контрольная сумма: веса [1,2,3,4,5,6,7,8,9,10,11]
         2-я контрольная сумма: веса [3,4,5,6,7,8,9,10,11,1,2,3]
-        
+
         Args:
             iin: 12-значный ИИН
-            
+
         Returns:
             (ctrl1, ctrl2) — контрольные суммы
         """
@@ -91,12 +91,12 @@ class NumericInvariantVerifier:
 
         # Первая контрольная сумма
         weights1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        sum1 = sum(w * d for w, d in zip(weights1, digits[:11]))
+        sum1 = sum(w * d for w, d in zip(weights1, digits[:11], strict=False))
         ctrl1 = sum1 % 11
 
         # Вторая контрольная сумма
         weights2 = [3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
-        sum2 = sum(w * d for w, d in zip(weights2, digits))
+        sum2 = sum(w * d for w, d in zip(weights2, digits, strict=False))
         ctrl2 = sum2 % 11
 
         return ctrl1, ctrl2
@@ -104,10 +104,10 @@ class NumericInvariantVerifier:
     def validate_iin(self, iin: str) -> bool:
         """
         Валидация ИИН по алгоритму модуля 11.
-        
+
         Args:
             iin: 12-значный ИИН
-            
+
         Returns:
             True если ИИН валиден
         """
@@ -132,10 +132,10 @@ class NumericInvariantVerifier:
     def extract_iin_invariants(self, iins: list[str]) -> dict[str, float]:
         """
         Извлечение инвариантов из списка ИИН.
-        
+
         Args:
             iins: Список ИИН
-            
+
         Returns:
             Словарь инвариантов:
             - count: количество
@@ -171,11 +171,11 @@ class NumericInvariantVerifier:
     ) -> dict[str, float]:
         """
         Вычисление инвариантов для числовых значений.
-        
+
         Args:
             values: Список значений
             name: Префикс для имён инвариантов
-            
+
         Returns:
             Словарь инвариантов:
             - {name}_sum: сумма
@@ -201,11 +201,11 @@ class NumericInvariantVerifier:
     ) -> dict[str, InvariantCheck]:
         """
         Верификация ИИН через контрольные суммы.
-        
+
         Args:
             original_iins: Оригинальные ИИН
             compressed_iins: Сжатые ИИН (после оптимизации)
-            
+
         Returns:
             Словарь {имя_инварианта: InvariantCheck}
         """
@@ -270,10 +270,10 @@ class NumericInvariantVerifier:
     def is_all_valid(self, checks: dict[str, InvariantCheck]) -> bool:
         """
         Проверка: все ли инварианты валидны.
-        
+
         Args:
             checks: Словарь результатов проверки
-            
+
         Returns:
             True если все инварианты VERIFIED
         """
@@ -282,10 +282,10 @@ class NumericInvariantVerifier:
     def get_summary(self, checks: dict[str, InvariantCheck]) -> str:
         """
         Получение сводного отчёта.
-        
+
         Args:
             checks: Словарь результатов проверки
-            
+
         Returns:
             Текстовый отчёт
         """

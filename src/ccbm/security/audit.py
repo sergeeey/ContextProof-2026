@@ -145,7 +145,7 @@ class SecurityReport:
 class SecurityAuditor:
     """
     Security Auditor для CCBM.
-    
+
     Инструменты:
     - Bandit (Python security)
     - Gitleaks (secrets detection)
@@ -155,7 +155,7 @@ class SecurityAuditor:
     def __init__(self, project_path: Path):
         """
         Инициализация аудитора.
-        
+
         Args:
             project_path: Путь к проекту
         """
@@ -165,7 +165,7 @@ class SecurityAuditor:
     def run_bandit(self) -> list[SecurityFinding]:
         """
         Запуск Bandit security scanner.
-        
+
         Returns:
             Список находок
         """
@@ -216,14 +216,14 @@ class SecurityAuditor:
     def run_gitleaks(self) -> list[SecurityFinding]:
         """
         Запуск Gitleaks для поиска секретов.
-        
+
         Returns:
             Список находок
         """
         logger.info("Запуск Gitleaks...")
 
         try:
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "gitleaks", "detect",
                     "--source", str(self.project_path),
@@ -271,7 +271,7 @@ class SecurityAuditor:
     def run_ruff_security(self) -> list[SecurityFinding]:
         """
         Запуск Ruff с security rules.
-        
+
         Returns:
             Список находок
         """
@@ -320,7 +320,7 @@ class SecurityAuditor:
     def run_all_scans(self) -> list[SecurityFinding]:
         """
         Запуск всех сканеров.
-        
+
         Returns:
             Объединённый список находок
         """
@@ -343,7 +343,7 @@ class SecurityAuditor:
     def generate_report(self) -> SecurityReport:
         """
         Генерация отчёта.
-        
+
         Returns:
             SecurityReport
         """
@@ -412,7 +412,7 @@ class SecurityAuditor:
     def _calculate_score(counts: dict[str, int]) -> float:
         """
         Расчёт security score.
-        
+
         Formula: 10 - (critical*3 + high*2 + medium*1 + low*0.5)
         """
         penalty = (
@@ -441,10 +441,10 @@ class SecurityAuditor:
 def run_security_audit(project_path: Path | None = None) -> SecurityReport:
     """
     Запуск security аудита.
-    
+
     Args:
         project_path: Путь к проекту (по умолчанию текущая директория)
-        
+
     Returns:
         SecurityReport
     """

@@ -149,7 +149,7 @@ class TestAuditEngine:
         """Получение квитанции по ID."""
         engine = AuditEngine()
         receipt1 = engine.add_transformation("orig1", "comp1")
-        receipt2 = engine.add_transformation("orig2", "comp2")
+        engine.add_transformation("orig2", "comp2")
         engine.finalize()
 
         retrieved = engine.get_receipt(receipt1.receipt_id)

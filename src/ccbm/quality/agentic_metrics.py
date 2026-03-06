@@ -55,7 +55,7 @@ class AgenticMetrics:
 class AgenticCompressionEvaluator:
     """
     Оценщик агентского сжатия (ACBench-inspired).
-    
+
     Методы:
     - compute_erank: Energy Rank метрика
     - compute_retention: Context Retention Score
@@ -77,14 +77,14 @@ class AgenticCompressionEvaluator:
     ) -> AgenticMetrics:
         """
         Полная оценка агентского сжатия.
-        
+
         Args:
             original_text: Исходный контекст
             compressed_text: Сжатый контекст
             task_output_original: Результат задачи с оригинальным контекстом
             task_output_compressed: Результат задачи со сжатым контекстом
             task_type: Тип задачи (qa/code/rag/workflow)
-            
+
         Returns:
             AgenticMetrics
         """
@@ -137,11 +137,11 @@ class AgenticCompressionEvaluator:
     def _compute_bert_score(self, text1: str, text2: str) -> float:
         """
         Вычисление BERT Score (F1).
-        
+
         Args:
             text1: Текст 1
             text2: Текст 2
-            
+
         Returns:
             BERT Score (0-1)
         """
@@ -164,14 +164,14 @@ class AgenticCompressionEvaluator:
     def _compute_erank(self, original: str, compressed: str) -> float:
         """
         Energy Rank метрика.
-        
+
         Идея: "энергия" информации в сжатом тексте.
         Вычисляется через распределение важности токенов.
-        
+
         Args:
             original: Исходный текст
             compressed: Сжатый текст
-            
+
         Returns:
             ERank Score (0-1)
         """
@@ -205,17 +205,17 @@ class AgenticCompressionEvaluator:
     ) -> float:
         """
         Context Retention Score.
-        
+
         Для разных задач:
         - QA: Exact Match / F1
         - Code: Pass@k
         - RAG: Recall@k
-        
+
         Args:
             output_original: Вывод с оригинальным контекстом
             output_compressed: Вывод со сжатым контекстом
             task_type: Тип задачи
-            
+
         Returns:
             Retention Score (0-1)
         """
@@ -231,11 +231,11 @@ class AgenticCompressionEvaluator:
     def _qa_retention(self, original: str, compressed: str) -> float:
         """
         QA Retention через Exact Match.
-        
+
         Args:
             original: Оригинальный ответ
             compressed: Сжатый ответ
-            
+
         Returns:
             Retention Score (0-1)
         """
@@ -255,11 +255,11 @@ class AgenticCompressionEvaluator:
     def _code_retention(self, original: str, compressed: str) -> float:
         """
         Code Retention через синтаксическую эквивалентность.
-        
+
         Args:
             original: Оригинальный код
             compressed: Сжатый код
-            
+
         Returns:
             Retention Score (0-1)
         """
@@ -278,11 +278,11 @@ class AgenticCompressionEvaluator:
     def _rag_retention(self, original: str, compressed: str) -> float:
         """
         RAG Retention через Recall.
-        
+
         Args:
             original: Оригинальные retrieved документы
             compressed: Сжатые retrieved документы
-            
+
         Returns:
             Recall@k (0-1)
         """
@@ -298,11 +298,11 @@ class AgenticCompressionEvaluator:
     def _evaluate_workflow(self, original: str, compressed: str) -> float:
         """
         Workflow Retention для workflow generation задач.
-        
+
         Args:
             original: Оригинальный workflow
             compressed: Сжатый workflow
-            
+
         Returns:
             Retention Score (0-1)
         """
@@ -319,11 +319,11 @@ class AgenticCompressionEvaluator:
     def _evaluate_tool_use(self, original: str, compressed: str) -> float:
         """
         Tool Use Preservation для function calling.
-        
+
         Args:
             original: Оригинальный вызов функции
             compressed: Сжатый вызов функции
-            
+
         Returns:
             Preservation Score (0-1)
         """
@@ -337,8 +337,8 @@ class AgenticCompressionEvaluator:
             return 1.0
 
         # Сравниваем имена функций
-        original_names = set(f[0] for f in original_funcs)
-        compressed_names = set(f[0] for f in compressed_funcs)
+        original_names = {f[0] for f in original_funcs}
+        compressed_names = {f[0] for f in compressed_funcs}
 
         return len(original_names & compressed_names) / max(1, len(original_names))
 
@@ -398,14 +398,14 @@ def evaluate_agentic_compression(
 ) -> AgenticMetrics:
     """
     Оценка агентского сжатия.
-    
+
     Args:
         original: Исходный контекст
         compressed: Сжатый контекст
         task_output_original: Результат задачи с оригиналом
         task_output_compressed: Результат задачи со сжатым
         task_type: Тип задачи
-        
+
     Returns:
         AgenticMetrics
     """

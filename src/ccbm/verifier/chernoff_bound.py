@@ -23,7 +23,7 @@ import numpy as np
 class ChernoffOrder:
     """
     Теоретический порядок сходимости метода верификации.
-    
+
     Для CCBM используем упрощённую модель:
     - k=1: Базовая верификация (линейная сходимость)
     - k=2: Улучшенная верификация (квадратичная сходимость)
@@ -61,7 +61,7 @@ class ChernoffOrder:
 class DataRegularity:
     """
     Класс регулярности данных — аналог PayoffRegularity из ChernoffPy.
-    
+
     Определяет гладкость числовых данных для оценки сходимости.
     """
     k_f: int
@@ -98,7 +98,7 @@ class DataRegularity:
 class CertifiedBound:
     """
     Сертифицированная верхняя граница ошибки верификации.
-    
+
     Адаптировано из ChernoffPy.compute_certified_bound()
     """
     bound: float                    # Верхняя граница ошибки
@@ -115,7 +115,7 @@ class CertifiedBound:
 def effective_order(chernoff_order: ChernoffOrder, data_reg: DataRegularity) -> int:
     """
     Эффективный алгебраический порядок: min(порядок метода, регулярность данных).
-    
+
     Если данные недостаточно гладкие, порядок сходимости ограничивается регулярностью.
     """
     return min(chernoff_order.k, data_reg.k_f)
@@ -124,13 +124,13 @@ def effective_order(chernoff_order: ChernoffOrder, data_reg: DataRegularity) -> 
 class ChernoffVerifier:
     """
     Верификатор числовых данных на основе границ Чернова.
-    
+
     Применение в CCBM:
     1. Вычисляем математическое ожидание до сжатия (original)
     2. Вычисляем после сжатия (compressed)
     3. Применяем границы Чернова для оценки вероятности ошибки
     4. Если P(error > threshold) > alpha → COMPROMISED → откат
-    
+
     Для финансовых данных в РК: alpha = 0.01 (строго!)
     """
 
@@ -150,7 +150,7 @@ class ChernoffVerifier:
     ):
         """
         Инициализация верификатора.
-        
+
         Args:
             method: Метод верификации (влияет на порядок сходимости)
             safety_factor: Коэффициент запаса (≥ 1.0), рекомендуется 2.0
@@ -171,13 +171,13 @@ class ChernoffVerifier:
     ) -> CertifiedBound:
         """
         Верификация числовых данных через границы Чернова.
-        
+
         Args:
             original_values: Оригинальные значения (до сжатия)
             compressed_values: Сжатые значения (после оптимизации)
             data_name: Имя данных для отчёта
             n_steps: Количество шагов (по умолчанию len(original_values))
-            
+
         Returns:
             CertifiedBound с границей ошибки
         """
@@ -245,11 +245,11 @@ class ChernoffVerifier:
     ) -> dict[str, CertifiedBound]:
         """
         Верификация набора инвариантов (например, суммы, средние, контрольные суммы).
-        
+
         Args:
             original_invariants: Оригинальные инварианты {имя: значение}
             compressed_invariants: Сжатые инварианты {имя: значение}
-            
+
         Returns:
             Словарь {имя_инварианта: CertifiedBound}
         """
@@ -308,11 +308,11 @@ class ChernoffVerifier:
     ) -> bool:
         """
         Проверка: проходит ли данные верификацию.
-        
+
         Args:
             bound: Граница ошибки от verify()
             threshold: Порог ошибки (по умолчанию significance_level)
-            
+
         Returns:
             True если данные валидны (ошибка ≤ порога)
         """
@@ -328,7 +328,7 @@ class ChernoffVerifier:
     def get_status(self, bound: CertifiedBound) -> str:
         """
         Получение статуса верификации.
-        
+
         Returns:
             "VERIFIED" | "COMPROMISED" | "UNVERIFIED"
         """
@@ -350,9 +350,9 @@ def compute_certified_bound(
 ) -> CertifiedBound:
     """
     Вычисление консервативной верхней границы ошибки |V_n - V_exact|.
-    
+
     Адаптировано из ChernoffPy с минимальными изменениями.
-    
+
     Args:
         prices: Словарь {n_steps: значение} для оценки сходимости
         chernoff_order: Порядок сходимости метода
@@ -360,7 +360,7 @@ def compute_certified_bound(
         n_target: Целевое количество шагов
         safety_factor: Коэффициент запаса (≥ 1.0)
         exact_price: Точное значение (если известно)
-        
+
     Returns:
         CertifiedBound с вычисленной границей
     """
@@ -474,9 +474,9 @@ def verify_convergence_order(
 ) -> dict:
     """
     Оценка эмпирического порядка сходимости и сравнение с теоретическим.
-    
+
     Адаптировано из ChernoffPy.
-    
+
     Returns:
         Dict с полями: empirical_order, expected_order, is_consistent, details
     """
@@ -552,9 +552,9 @@ def n_steps_for_tolerance(
 ) -> int:
     """
     Рекомендация количества шагов n для достижения целевой ошибки.
-    
+
     Формула: safety_factor * B / n^p <= target_error
-    
+
     Адаптировано из ChernoffPy.
     """
     if target_error <= 0:

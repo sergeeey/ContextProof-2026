@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 class MerkleProof:
     """
     Доказательство включения для дерева Меркла.
-    
+
     Содержит путь от листа до корня с_sibling хешами.
     """
     leaf_hash: str                    # Хеш верифицируемого элемента
@@ -52,7 +52,7 @@ class MerkleProof:
 class VerificationReceipt:
     """
     Квитанция верификации для аудита.
-    
+
     Содержит всю информацию для независимой проверки целостности.
     """
     receipt_id: str                   # Уникальный ID квитанции
@@ -81,7 +81,7 @@ class VerificationReceipt:
 class MerkleTree:
     """
     Реализация дерева Меркла.
-    
+
     Поддерживает:
     - Построение дерева из списка хешей
     - Генерацию доказательств включения
@@ -91,7 +91,7 @@ class MerkleTree:
     def __init__(self, leaves: list[str]):
         """
         Инициализация дерева Меркла.
-        
+
         Args:
             leaves: Список хешей листьев (предварительно хешированные данные)
         """
@@ -118,7 +118,7 @@ class MerkleTree:
     def _build_tree(self, leaves: list[str]) -> list[list[str]]:
         """
         Построение дерева Меркла.
-        
+
         Returns:
             Список уровней дерева (снизу вверх)
         """
@@ -161,10 +161,10 @@ class MerkleTree:
     def get_proof(self, index: int) -> MerkleProof:
         """
         Получение доказательства включения для листа.
-        
+
         Args:
             index: Индекс листа
-            
+
         Returns:
             MerkleProof с путём до корня
         """
@@ -202,10 +202,10 @@ class MerkleTree:
     def verify_proof(proof: MerkleProof) -> bool:
         """
         Верификация доказательства включения.
-        
+
         Args:
             proof: Доказательство для проверки
-            
+
         Returns:
             True если доказательство валидно
         """
@@ -227,7 +227,7 @@ class MerkleTree:
 class AuditEngine:
     """
     Движок аудита для CCBM.
-    
+
     Обеспечивает неизменяемое логирование всех трансформаций контекста:
     1. Хеширование оригинальных спанов
     2. Хеширование сжатых спанов
@@ -250,12 +250,12 @@ class AuditEngine:
     ) -> VerificationReceipt:
         """
         Добавление записи о трансформации.
-        
+
         Args:
             original_data: Оригинальные данные (до сжатия)
             compressed_data: Сжатые данные (после оптимизации)
             metadata: Дополнительные метаданные
-            
+
         Returns:
             VerificationReceipt для этой трансформации
         """
@@ -293,7 +293,7 @@ class AuditEngine:
     def finalize(self) -> str:
         """
         Финализация дерева Меркла.
-        
+
         Returns:
             Корень дерева Меркла
         """
@@ -315,10 +315,10 @@ class AuditEngine:
     def get_receipt(self, receipt_id: str) -> VerificationReceipt | None:
         """
         Получение квитанции по ID.
-        
+
         Args:
             receipt_id: ID квитанции
-            
+
         Returns:
             VerificationReceipt или None
         """
@@ -330,10 +330,10 @@ class AuditEngine:
     def verify_receipt(self, receipt: VerificationReceipt) -> bool:
         """
         Верификация квитанции.
-        
+
         Args:
             receipt: Квитанция для проверки
-            
+
         Returns:
             True если квитанция валидна
         """
@@ -345,11 +345,11 @@ class AuditEngine:
     def verify_consistency(self, old_root: str, new_root: str) -> bool:
         """
         Проверка согласованности корней (для инкрементального добавления).
-        
+
         Args:
             old_root: Предыдущий корень
             new_root: Новый корень
-            
+
         Returns:
             True если корни согласованы
         """
@@ -360,7 +360,7 @@ class AuditEngine:
     def get_audit_log(self) -> list[dict]:
         """
         Получение полного аудиторского лога.
-        
+
         Returns:
             Список всех квитанций в виде словарей
         """
@@ -369,7 +369,7 @@ class AuditEngine:
     def export_for_blockchain(self) -> dict:
         """
         Экспорт данных для анкоринга в блокчейн.
-        
+
         Returns:
             Словарь с root hash и метаданными для записи в блокчейн
         """
@@ -422,10 +422,10 @@ class AuditReport:
 def create_audit_report(engine: AuditEngine) -> AuditReport:
     """
     Создание полного отчёта аудита.
-    
+
     Args:
         engine: AuditEngine с данными
-        
+
     Returns:
         AuditReport со всеми проверками
     """

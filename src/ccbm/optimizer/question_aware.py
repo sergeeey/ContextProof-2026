@@ -37,7 +37,7 @@ class RankedSpan:
 class QuestionAwareCompressor:
     """
     Question-aware компрессор для CCBM.
-    
+
     Алгоритм:
     1. Ранжирование спанов по релевантности к вопросу
     2. Переупорядочивание (L1 → начало, релевантные → выше)
@@ -47,7 +47,7 @@ class QuestionAwareCompressor:
     def __init__(self, model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"):
         """
         Инициализация.
-        
+
         Args:
             model_name: Модель для semantic similarity
         """
@@ -75,11 +75,11 @@ class QuestionAwareCompressor:
     ) -> list[RankedSpan]:
         """
         Ранжирование спанов по релевантности к вопросу.
-        
+
         Args:
             spans: Список спанов от CriticalityAnalyzer
             question: Вопрос пользователя
-            
+
         Returns:
             Отсортированный список RankedSpan
         """
@@ -112,16 +112,16 @@ class QuestionAwareCompressor:
     ) -> tuple[str, dict]:
         """
         Переупорядочивание и сжатие.
-        
+
         Алгоритм:
         1. L1 спаны (критичные) → всегда в начало
         2. Релевантные вопросу → выше в приоритете
         3. Сжатие L4 с учётом бюджета
-        
+
         Args:
             ranked_spans: Ранжированные спаны
             target_budget: Целевой бюджет токенов
-            
+
         Returns:
             (сжатый текст, метаданные)
         """
@@ -142,7 +142,7 @@ class QuestionAwareCompressor:
 
         # 4. L4 (контекст) → с учётом релевантности и бюджета
         current_length = sum(len(s.text) for s in result_spans)
-        remaining_budget = max(0, target_budget - current_length)
+        max(0, target_budget - current_length)
 
         # Сортируем L4 по релевантности
         l4_spans.sort(key=lambda r: r.final_score, reverse=True)
@@ -185,11 +185,11 @@ class QuestionAwareCompressor:
     def _compute_relevance(self, text: str, question: str) -> float:
         """
         Вычисление релевантности текста к вопросу.
-        
+
         Args:
             text: Текст спана
             question: Вопрос
-            
+
         Returns:
             Релевантность (0.0 - 1.0)
         """
@@ -217,11 +217,11 @@ class QuestionAwareCompressor:
     def _keyword_relevance(text: str, question: str) -> float:
         """
         Keyword-based релевантность (fallback).
-        
+
         Args:
             text: Текст спана
             question: Вопрос
-            
+
         Returns:
             Релевантность (0.0 - 1.0)
         """
@@ -259,12 +259,12 @@ def compress_with_question(
 ) -> tuple[str, dict]:
     """
     Сжатие с учётом вопроса.
-    
+
     Args:
         spans: Список спанов от CriticalityAnalyzer
         question: Вопрос пользователя
         config: Конфигурация
-        
+
     Returns:
         (сжатый текст, метаданные)
     """

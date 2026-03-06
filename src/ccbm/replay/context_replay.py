@@ -66,7 +66,7 @@ class ContextEvent:
 class ContextSession:
     """
     Сессия контекста.
-    
+
     Содержит полную историю:
     - original context
     - compressed context
@@ -91,7 +91,7 @@ class ContextSession:
     def reconstruct_prompt(self) -> str:
         """
         Реконструкция точного промпта.
-        
+
         Returns:
             Последний сжатый контекст
         """
@@ -105,7 +105,7 @@ class ContextSession:
     def get_removed_segments(self) -> list[str]:
         """
         Получение удалённых сегментов.
-        
+
         Returns:
             Список удалённых сегментов
         """
@@ -137,7 +137,7 @@ class ContextSession:
 class ContextReplayEngine:
     """
     Движок для replay контекста.
-    
+
     Использование:
     1. Логирование событий
     2. Сохранение сессии
@@ -147,7 +147,7 @@ class ContextReplayEngine:
     def __init__(self, storage_path: str | None = None):
         """
         Инициализация движка.
-        
+
         Args:
             storage_path: Путь к хранилищу (None = in-memory)
         """
@@ -165,11 +165,11 @@ class ContextReplayEngine:
     ) -> ContextSession:
         """
         Создание сессии.
-        
+
         Args:
             session_id: ID сессии (auto-generated если None)
             metadata: Метаданные
-            
+
         Returns:
             ContextSession
         """
@@ -319,10 +319,10 @@ class ContextReplayEngine:
     def replay(self, session_id: str) -> ContextSession | None:
         """
         Replay сессии.
-        
+
         Args:
             session_id: ID сессии
-            
+
         Returns:
             ContextSession или None
         """
@@ -344,10 +344,10 @@ class ContextReplayEngine:
     def reconstruct_prompt(self, session_id: str) -> str:
         """
         Реконструкция промпта.
-        
+
         Args:
             session_id: ID сессии
-            
+
         Returns:
             Промпт
         """
@@ -361,10 +361,10 @@ class ContextReplayEngine:
     def get_removed_segments(self, session_id: str) -> list[str]:
         """
         Получение удалённых сегментов.
-        
+
         Args:
             session_id: ID сессии
-            
+
         Returns:
             Список удалённых сегментов
         """
@@ -378,7 +378,7 @@ class ContextReplayEngine:
     def save_session(self, session: ContextSession):
         """
         Сохранение сессии.
-        
+
         Args:
             session: Сессия для сохранения
         """

@@ -19,7 +19,7 @@ def calculate_readiness_score(
 ) -> dict:
     """
     Расчёт Readiness Score.
-    
+
     Formula:
     Score = 0.30 × Correctness
           + 0.25 × Validation

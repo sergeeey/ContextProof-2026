@@ -63,7 +63,7 @@ class InformationSegment:
 class InformationContract:
     """
     Контракт сохранённой информации.
-    
+
     Сертификат который гарантирует:
     - information_preserved ≥ X%
     - critical_spans_preserved = 100%
@@ -117,7 +117,7 @@ class InformationContract:
     def get_certificate(self) -> str:
         """
         Получение сертификата.
-        
+
         Returns:
             Hash сертификата
         """
@@ -140,7 +140,7 @@ class InformationContract:
 class InformationContractEngine:
     """
     Движок создания информационных контрактов.
-    
+
     Использование:
     1. Сегментация контекста
     2. Присвоение весов
@@ -157,7 +157,7 @@ class InformationContractEngine:
     ):
         """
         Инициализация движка.
-        
+
         Args:
             min_information_preserved: Мин. % сохранённой информации
             min_critical_spans: Мин. % критичных спанов
@@ -176,11 +176,11 @@ class InformationContractEngine:
     ) -> list[InformationSegment]:
         """
         Сегментация контекста по классам информации.
-        
+
         Args:
             text: Текст
             spans: Спаны от CriticalityAnalyzer
-            
+
         Returns:
             Список сегментов
         """
@@ -208,7 +208,7 @@ class InformationContractEngine:
         else:
             # Простая сегментация по предложениям
             sentences = text.split('.')
-            for i, sentence in enumerate(sentences):
+            for _i, sentence in enumerate(sentences):
                 if not sentence.strip():
                     continue
 
@@ -285,12 +285,12 @@ class InformationContractEngine:
     ) -> InformationContract:
         """
         Создание контракта.
-        
+
         Args:
             text: Оригинальный текст
             compressed_text: Сжатый текст
             spans: Спаны от CriticalityAnalyzer
-            
+
         Returns:
             InformationContract
         """
@@ -344,7 +344,7 @@ class InformationContractEngine:
     ) -> float:
         """
         Вычисление % сохранённой информации.
-        
+
         Формула:
         sum(weight * preserved for segment in segments) / sum(weight)
         """
@@ -401,7 +401,7 @@ class InformationContractEngine:
     ) -> float:
         """
         Вычисление семантического расхождения.
-        
+
         Пока простая эвристика на основе overlap.
         TODO: KL divergence / BERTScore
         """
@@ -452,12 +452,12 @@ def create_information_contract(
 ) -> InformationContract:
     """
     Быстрое создание контракта.
-    
+
     Args:
         text: Оригинальный текст
         compressed_text: Сжатый текст
         spans: Спаны
-        
+
     Returns:
         InformationContract
     """

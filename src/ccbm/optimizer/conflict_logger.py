@@ -79,7 +79,7 @@ class CompressionConflict:
 class ConflictLogger:
     """
     Логгер конфликтов сжатия.
-    
+
     Использование:
     1. Логирование конфликтов между контурами A/B
     2. Экспорт в Golden Set для тестов
@@ -89,7 +89,7 @@ class ConflictLogger:
     def __init__(self, log_path: str = "conflicts.log"):
         """
         Инициализация логгера.
-        
+
         Args:
             log_path: Путь к файлу логов
         """
@@ -109,7 +109,7 @@ class ConflictLogger:
     ) -> CompressionConflict:
         """
         Логирование конфликта.
-        
+
         Args:
             conflict_type: Тип конфликта
             severity: Критичность
@@ -118,7 +118,7 @@ class ConflictLogger:
             compressed_data: Сжатые данные
             resolution: Способ разрешения
             metadata: Дополнительные метаданные
-            
+
         Returns:
             CompressionConflict
         """
@@ -165,12 +165,12 @@ class ConflictLogger:
     ) -> list[CompressionConflict]:
         """
         Получение конфликтов с фильтрацией.
-        
+
         Args:
             conflict_type: Фильтр по типу
             severity: Фильтр по критичности
             resolved: Фильтр по статусу разрешения
-            
+
         Returns:
             Список конфликтов
         """
@@ -190,7 +190,7 @@ class ConflictLogger:
     def export_to_golden_set(self, path: str = "golden_set_conflicts.json"):
         """
         Экспорт конфликтов в Golden Set для тестов.
-        
+
         Args:
             path: Путь к файлу Golden Set
         """
@@ -209,7 +209,7 @@ class ConflictLogger:
     def get_metrics(self) -> dict[str, Any]:
         """
         Получение метрик конфликтов.
-        
+
         Returns:
             Словарь с метриками
         """
@@ -249,7 +249,7 @@ class ConflictLogger:
     def resolve_conflict(self, conflict_id: str, resolved: bool = True):
         """
         Разрешение конфликта.
-        
+
         Args:
             conflict_id: ID конфликта
             resolved: Статус разрешения
@@ -285,7 +285,7 @@ def log_compression_conflict(
 ) -> CompressionConflict:
     """
     Быстрое логирование конфликта.
-    
+
     Args:
         conflict_type: Тип конфликта
         severity: Критичность
@@ -293,7 +293,7 @@ def log_compression_conflict(
         original_data: Оригинальные данные
         compressed_data: Сжатые данные
         resolution: Способ разрешения
-        
+
     Returns:
         CompressionConflict
     """

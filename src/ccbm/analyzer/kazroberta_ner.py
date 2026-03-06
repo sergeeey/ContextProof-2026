@@ -57,7 +57,7 @@ class NEREntity:
 class KazRoBERTaNER:
     """
     NER модель на базе KazRoBERTa.
-    
+
     Поддерживает:
     - Распознавание ФИО (PER)
     - Распознавание локаций (LOC)
@@ -78,7 +78,7 @@ class KazRoBERTaNER:
     ):
         """
         Инициализация NER модели.
-        
+
         Args:
             model_name: Название модели
             device: Устройство (cpu/cuda)
@@ -97,7 +97,7 @@ class KazRoBERTaNER:
     def load(self) -> bool:
         """
         Загрузка модели.
-        
+
         Returns:
             True если успешно загружена
         """
@@ -125,10 +125,10 @@ class KazRoBERTaNER:
     def predict(self, text: str) -> list[NEREntity]:
         """
         Предсказание сущностей в тексте.
-        
+
         Args:
             text: Текст для анализа
-            
+
         Returns:
             Список распознанных сущностей
         """
@@ -153,10 +153,10 @@ class KazRoBERTaNER:
     def _predict_with_model(self, text: str) -> list[NEREntity]:
         """
         Предсказание с помощью модели.
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Список сущностей
         """
@@ -229,10 +229,10 @@ class KazRoBERTaNER:
     def _extract_pattern_entities(self, text: str) -> list[NEREntity]:
         """
         Извлечение сущностей по паттернам.
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Список сущностей
         """
@@ -289,10 +289,10 @@ class KazRoBERTaNER:
     def extract_pii(self, text: str) -> list[NEREntity]:
         """
         Извлечение только PII сущностей.
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Список PII сущностей
         """
@@ -311,11 +311,11 @@ class KazRoBERTaNER:
     def mask_pii(self, text: str, replacement: str = "[REDACTED]") -> str:
         """
         Маскирование PII в тексте.
-        
+
         Args:
             text: Текст
             replacement: Замена для PII
-            
+
         Returns:
             Текст с замаскированными PII
         """
@@ -357,10 +357,10 @@ class NERConfig:
 def create_ner_model(config: NERConfig | None = None) -> KazRoBERTaNER:
     """
     Создание NER модели.
-    
+
     Args:
         config: Конфигурация
-        
+
     Returns:
         KazRoBERTaNER
     """

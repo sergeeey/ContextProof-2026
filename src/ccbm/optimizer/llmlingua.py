@@ -62,7 +62,7 @@ class CompressionResult:
 class LLMLinguaCompressor:
     """
     Обёртка для LLMLingua PromptCompressor.
-    
+
     Поддерживает:
     - LLMLingua-2 (быстрое сжатие)
     - LongLLMLingua (для длинных документов)
@@ -76,7 +76,7 @@ class LLMLinguaCompressor:
     ):
         """
         Инициализация компрессора.
-        
+
         Args:
             model_name: Модель для сжатия
             device: Устройство (cpu/cuda)
@@ -107,7 +107,7 @@ class LLMLinguaCompressor:
     ) -> CompressionResult:
         """
         Сжатие текста через LLMLingua.
-        
+
         Args:
             text: Текст для сжатия
             target_token: Целевое количество токенов
@@ -115,7 +115,7 @@ class LLMLinguaCompressor:
             context: Дополнительный контекст
             rank_method: Метод ранжирования (llmlingua2/longllmlingua)
             additional_compress_kwargs: Дополнительные параметры
-            
+
         Returns:
             CompressionResult с результатами
         """
@@ -166,14 +166,14 @@ class LLMLinguaCompressor:
     ) -> dict:
         """
         Сжатие промпта через LLMLingua.
-        
+
         Args:
             texts: Список текстов для сжатия
             target_token: Целевое количество токенов
             instruction: Инструкция
             context: Контекст
             rank_method: Метод ранжирования
-            
+
         Returns:
             Dict с compressed_prompt и другой информацией
         """
@@ -193,12 +193,12 @@ class LLMLinguaCompressor:
     ) -> CompressionResult:
         """
         Сжатие длинного документа через LongLLMLingua.
-        
+
         Args:
             text: Длинный текст
             question: Вопрос для контекста
             instruction: Инструкция
-            
+
         Returns:
             CompressionResult
         """
@@ -235,10 +235,10 @@ class LLMLinguaCompressor:
     def _fallback_compress(self, text: str) -> CompressionResult:
         """
         Базовое сжатие при ошибке LLMLingua.
-        
+
         Args:
             text: Текст для сжатия
-            
+
         Returns:
             CompressionResult
         """
@@ -266,12 +266,12 @@ class LLMLinguaCompressor:
     def _estimate_tokens(text: str) -> int:
         """
         Приблизительная оценка количества токенов.
-        
+
         Для русского/казахского: ~1.5 токена на слово
-        
+
         Args:
             text: Текст
-            
+
         Returns:
             Примерное количество токенов
         """
@@ -305,10 +305,10 @@ class LLMLinguaConfig:
 def create_compressor(config: LLMLinguaConfig | None = None) -> LLMLinguaCompressor:
     """
     Создание компрессора с конфигурацией.
-    
+
     Args:
         config: Конфигурация
-        
+
     Returns:
         LLMLinguaCompressor
     """

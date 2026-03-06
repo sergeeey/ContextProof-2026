@@ -46,7 +46,7 @@ class AuditEntry:
 class GlassBoxAudit:
     """
     Glass Box Audit для CCBM.
-    
+
     Прозрачный аудит всех решений с Merkle Tree гарантиями.
     """
 
@@ -67,14 +67,14 @@ class GlassBoxAudit:
     ) -> AuditEntry:
         """
         Логирование решения AI.
-        
+
         Args:
             agent: Название агента (например, "ChernoffVerifier")
             decision: Решение (например, "VERIFIED")
             confidence: Уверенность (0.0-1.0)
             reasoning: Объяснение решения
             metadata: Дополнительные метаданные
-            
+
         Returns:
             AuditEntry с merkle_hash
         """
@@ -118,7 +118,7 @@ class GlassBoxAudit:
     def finalize(self) -> str:
         """
         Финализация дерева Меркла.
-        
+
         Returns:
             Merkle root всех записей
         """
@@ -128,7 +128,7 @@ class GlassBoxAudit:
     def get_audit_trail(self) -> list[dict]:
         """
         Получение полного audit trail.
-        
+
         Returns:
             Список всех записей в виде словарей
         """
@@ -137,14 +137,14 @@ class GlassBoxAudit:
     def verify_integrity(self, fast_mode: bool = True) -> bool:
         """
         Проверка целостности audit trail.
-        
+
         Режимы:
         - Fast-mode (O(1)): проверка только Merkle root
         - Full-mode (O(n)): полная проверка всех квитанций
-        
+
         Args:
             fast_mode: Если True — быстрая проверка, иначе полная
-            
+
         Returns:
             True если все записи валидны
         """
@@ -172,10 +172,10 @@ class GlassBoxAudit:
     def verify_integrity_async(self, callback=None) -> str:
         """
         Асинхронная полная проверка (assurance-path).
-        
+
         Args:
             callback: Функция обратного вызова с результатом
-            
+
         Returns:
             ID задачи верификации
         """
@@ -200,7 +200,7 @@ class GlassBoxAudit:
     def export_for_blockchain(self) -> dict:
         """
         Экспорт для блокчейн-анкоринга.
-        
+
         Returns:
             Словарь с данными для записи в блокчейн
         """
@@ -228,7 +228,7 @@ class GlassBoxAudit:
     def get_summary(self) -> dict:
         """
         Получение сводки аудита.
-        
+
         Returns:
             Словарь с метриками аудита
         """
@@ -282,10 +282,10 @@ class GlassBoxReport:
 def create_glass_box_report(audit: GlassBoxAudit) -> GlassBoxReport:
     """
     Создание отчёта Glass Box Audit.
-    
+
     Args:
         audit: GlassBoxAudit с данными
-        
+
     Returns:
         GlassBoxReport со всеми проверками
     """

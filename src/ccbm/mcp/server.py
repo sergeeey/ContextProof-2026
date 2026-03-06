@@ -211,7 +211,7 @@ async def optimize_context(
 ) -> dict:
     """
     Оптимизация текста с верификацией.
-    
+
     Returns:
         Dict с оптимизированным текстом и метаданными
     """
@@ -225,7 +225,7 @@ async def optimize_context(
 
     # Верификация (если есть числовые данные)
     verification_status = "skipped"
-    verifier = ChernoffVerifier(domain=domain)
+    ChernoffVerifier(domain=domain)
 
     # Аудит
     audit = AuditEngine()
@@ -264,7 +264,7 @@ async def verify_invariants(
 ) -> dict:
     """
     Верификация числовых инвариантов.
-    
+
     Returns:
         Dict с результатом верификации
     """
@@ -308,7 +308,7 @@ async def analyze_spans(
 ) -> dict:
     """
     Анализ спанов по уровням критичности.
-    
+
     Returns:
         Dict с классифицированными спанами
     """
@@ -359,7 +359,7 @@ async def get_audit_receipt(
 ) -> dict:
     """
     Получение аудиторской квитанции.
-    
+
     Returns:
         Dict с квитанцией и доказательством Меркла
     """
