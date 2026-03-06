@@ -19,7 +19,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,8 @@ class SecurityFinding:
     cwe_id: str = ""
     confidence: str = "HIGH"
     remediation: str = ""
-    
-    def to_dict(self) -> Dict:
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "id": self.id,
@@ -67,12 +67,12 @@ class SecurityReport:
     medium: int
     low: int
     info: int
-    findings: List[SecurityFinding]
+    findings: list[SecurityFinding]
     score: float  # 0-10 (10 = безопасно)
     verdict: str  # PASS, NEEDS_WORK, FAIL
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "timestamp": self.timestamp,
@@ -90,36 +90,36 @@ class SecurityReport:
             "findings": [f.to_dict() for f in self.findings],
             "metadata": self.metadata,
         }
-    
+
     def to_markdown(self) -> str:
         """Генерация Markdown отчёта."""
         lines = [
-            f"# CCBM Security Audit Report",
-            f"",
+            "# CCBM Security Audit Report",
+            "",
             f"**Дата:** {self.timestamp}",
             f"**Проект:** {self.project_name}",
-            f"",
-            f"## Summary",
-            f"",
-            f"| Severity | Count |",
-            f"|----------|-------|",
+            "",
+            "## Summary",
+            "",
+            "| Severity | Count |",
+            "|----------|-------|",
             f"| 🔴 CRITICAL | {self.critical} |",
             f"| 🟠 HIGH | {self.high} |",
             f"| 🟡 MEDIUM | {self.medium} |",
             f"| 🟢 LOW | {self.low} |",
             f"| ℹ️ INFO | {self.info} |",
             f"| **TOTAL** | **{self.total_findings}** |",
-            f"",
+            "",
             f"## Score: {self.score}/10 — {self.verdict}",
-            f"",
+            "",
         ]
-        
+
         if self.findings:
             lines.extend([
                 "## Findings",
                 "",
             ])
-            
+
             for finding in self.findings[:20]:  # Первые 20
                 severity_icon = {
                     "CRITICAL": "🔴",
@@ -128,17 +128,17 @@ class SecurityReport:
                     "LOW": "🟢",
                     "INFO": "ℹ️",
                 }.get(finding.severity, "⚪")
-                
+
                 lines.extend([
                     f"### {severity_icon} {finding.id}: {finding.message}",
-                    f"",
+                    "",
                     f"- **File:** `{finding.file}:{finding.line}`",
                     f"- **CVSS:** {finding.cvss_score}",
                     f"- **CWE:** {finding.cwe_id}",
                     f"- **Remediation:** {finding.remediation}",
-                    f"",
+                    "",
                 ])
-        
+
         return "\n".join(lines)
 
 
@@ -151,7 +151,7 @@ class SecurityAuditor:
     - Gitleaks (secrets detection)
     - Ruff (linting + security rules)
     """
-    
+
     def __init__(self, project_path: Path):
         """
         Инициализация аудитора.
@@ -160,9 +160,9 @@ class SecurityAuditor:
             project_path: Путь к проекту
         """
         self.project_path = project_path
-        self.findings: List[SecurityFinding] = []
-    
-    def run_bandit(self) -> List[SecurityFinding]:
+        self.findings: list[SecurityFinding] = []
+
+    def run_bandit(self) -> list[SecurityFinding]:
         """
         Запуск Bandit security scanner.
         
@@ -170,7 +170,7 @@ class SecurityAuditor:
             Список находок
         """
         logger.info("Запуск Bandit...")
-        
+
         try:
             result = subprocess.run(
                 [
@@ -183,12 +183,12 @@ class SecurityAuditor:
                 text=True,
                 timeout=120,
             )
-            
+
             findings = []
-            
+
             if result.stdout:
                 data = json.loads(result.stdout)
-                
+
                 for issue in data.get("results", []):
                     finding = SecurityFinding(
                         id=f"BANDIT-{issue.get('test_id', 'UNKNOWN')}",
@@ -202,18 +202,18 @@ class SecurityAuditor:
                         remediation=f"Review and fix: {issue.get('issue_text', '')}",
                     )
                     findings.append(finding)
-            
+
             logger.info(f"Bandit нашёл {len(findings)} проблем")
             return findings
-            
+
         except subprocess.TimeoutExpired:
             logger.error("Bandit timeout")
             return []
         except Exception as e:
             logger.error(f"Bandit error: {e}")
             return []
-    
-    def run_gitleaks(self) -> List[SecurityFinding]:
+
+    def run_gitleaks(self) -> list[SecurityFinding]:
         """
         Запуск Gitleaks для поиска секретов.
         
@@ -221,7 +221,7 @@ class SecurityAuditor:
             Список находок
         """
         logger.info("Запуск Gitleaks...")
-        
+
         try:
             result = subprocess.run(
                 [
@@ -235,15 +235,15 @@ class SecurityAuditor:
                 timeout=120,
                 cwd=self.project_path,
             )
-            
+
             findings = []
-            
+
             # Чтение отчёта
             report_path = self.project_path / "gitleaks-report.json"
             if report_path.exists():
                 with open(report_path) as f:
                     data = json.load(f)
-                
+
                 for leak in data:
                     finding = SecurityFinding(
                         id=f"GITLEAKS-{leak.get('RuleID', 'UNKNOWN')}",
@@ -257,18 +257,18 @@ class SecurityAuditor:
                         remediation="Remove secret and rotate credentials",
                     )
                     findings.append(finding)
-            
+
             logger.info(f"Gitleaks нашёл {len(findings)} секретов")
             return findings
-            
+
         except FileNotFoundError:
             logger.warning("Gitleaks не установлен. Пропускаем...")
             return []
         except Exception as e:
             logger.error(f"Gitleaks error: {e}")
             return []
-    
-    def run_ruff_security(self) -> List[SecurityFinding]:
+
+    def run_ruff_security(self) -> list[SecurityFinding]:
         """
         Запуск Ruff с security rules.
         
@@ -276,7 +276,7 @@ class SecurityAuditor:
             Список находок
         """
         logger.info("Запуск Ruff security check...")
-        
+
         try:
             result = subprocess.run(
                 [
@@ -289,12 +289,12 @@ class SecurityAuditor:
                 text=True,
                 timeout=120,
             )
-            
+
             findings = []
-            
+
             if result.stdout:
                 data = json.loads(result.stdout)
-                
+
                 for violation in data:
                     finding = SecurityFinding(
                         id=f"RUFF-{violation.get('code', 'UNKNOWN')}",
@@ -309,15 +309,15 @@ class SecurityAuditor:
                         remediation=f"Fix: {violation.get('message', '')}",
                     )
                     findings.append(finding)
-            
+
             logger.info(f"Ruff нашёл {len(findings)} проблем")
             return findings
-            
+
         except Exception as e:
             logger.error(f"Ruff error: {e}")
             return []
-    
-    def run_all_scans(self) -> List[SecurityFinding]:
+
+    def run_all_scans(self) -> list[SecurityFinding]:
         """
         Запуск всех сканеров.
         
@@ -325,21 +325,21 @@ class SecurityAuditor:
             Объединённый список находок
         """
         self.findings = []
-        
+
         # Bandit
         self.findings.extend(self.run_bandit())
-        
+
         # Gitleaks
         self.findings.extend(self.run_gitleaks())
-        
+
         # Ruff
         self.findings.extend(self.run_ruff_security())
-        
+
         # Deduplication
         self.findings = self._deduplicate_findings(self.findings)
-        
+
         return self.findings
-    
+
     def generate_report(self) -> SecurityReport:
         """
         Генерация отчёта.
@@ -355,13 +355,13 @@ class SecurityAuditor:
             "LOW": 0,
             "INFO": 0,
         }
-        
+
         for finding in self.findings:
             severity_counts[finding.severity] = severity_counts.get(finding.severity, 0) + 1
-        
+
         # Расчёт score (0-10)
         score = self._calculate_score(severity_counts)
-        
+
         # Вердикт
         if severity_counts["CRITICAL"] > 0:
             verdict = "❌ FAIL"
@@ -369,7 +369,7 @@ class SecurityAuditor:
             verdict = "⚠️ NEEDS_WORK"
         else:
             verdict = "✅ PASS"
-        
+
         return SecurityReport(
             timestamp=datetime.utcnow().isoformat(),
             project_name="CCBM",
@@ -387,7 +387,7 @@ class SecurityAuditor:
                 "scan_path": str(self.project_path),
             },
         )
-    
+
     @staticmethod
     def _bandit_severity(severity: str) -> str:
         """Конверсия severity Bandit."""
@@ -397,7 +397,7 @@ class SecurityAuditor:
             "LOW": "LOW",
         }
         return mapping.get(severity, "INFO")
-    
+
     @staticmethod
     def _severity_to_cvss(severity: str) -> float:
         """Конверсия severity в CVSS score."""
@@ -407,9 +407,9 @@ class SecurityAuditor:
             "LOW": 2.5,
         }
         return mapping.get(severity, 0.0)
-    
+
     @staticmethod
-    def _calculate_score(counts: Dict[str, int]) -> float:
+    def _calculate_score(counts: dict[str, int]) -> float:
         """
         Расчёт security score.
         
@@ -422,23 +422,23 @@ class SecurityAuditor:
             counts["LOW"] * 0.5
         )
         return max(0.0, min(10.0, 10.0 - penalty))
-    
+
     @staticmethod
-    def _deduplicate_findings(findings: List[SecurityFinding]) -> List[SecurityFinding]:
+    def _deduplicate_findings(findings: list[SecurityFinding]) -> list[SecurityFinding]:
         """Удаление дубликатов."""
         seen = set()
         unique = []
-        
+
         for finding in findings:
             key = (finding.id, finding.file, finding.line, finding.message)
             if key not in seen:
                 seen.add(key)
                 unique.append(finding)
-        
+
         return unique
 
 
-def run_security_audit(project_path: Optional[Path] = None) -> SecurityReport:
+def run_security_audit(project_path: Path | None = None) -> SecurityReport:
     """
     Запуск security аудита.
     
@@ -450,8 +450,8 @@ def run_security_audit(project_path: Optional[Path] = None) -> SecurityReport:
     """
     if project_path is None:
         project_path = Path.cwd()
-    
+
     auditor = SecurityAuditor(project_path)
     auditor.run_all_scans()
-    
+
     return auditor.generate_report()

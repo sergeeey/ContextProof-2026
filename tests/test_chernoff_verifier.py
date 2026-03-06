@@ -1,20 +1,20 @@
 """
 Тесты для ChernoffVerifier — верификация через границы Чернова.
 
-Адаптировано из ChernoffPy (E:\MarkovChains\ChernoffPy\tests\test_certified.py)
+Адаптировано из ChernoffPy (E:\\MarkovChains\\ChernoffPy\tests\test_certified.py)
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from ccbm.verifier.chernoff_bound import (
     ChernoffOrder,
-    DataRegularity,
-    CertifiedBound,
     ChernoffVerifier,
+    DataRegularity,
     compute_certified_bound,
-    verify_convergence_order,
-    n_steps_for_tolerance,
     effective_order,
+    n_steps_for_tolerance,
+    verify_convergence_order,
 )
 
 
@@ -153,7 +153,7 @@ class TestChernoffVerifier:
         verifier = ChernoffVerifier(domain="financial")
         original = np.array([100.0, 200.0, 300.0, 400.0])
         compressed = original.copy()
-        
+
         bound = verifier.verify(original, compressed, "test_data")
         assert bound.bound == 0.0
         assert verifier.is_valid(bound) is True
@@ -163,7 +163,7 @@ class TestChernoffVerifier:
         verifier = ChernoffVerifier(domain="financial", safety_factor=2.0)
         original = np.array([100.0, 200.0, 300.0, 400.0])
         compressed = original + np.array([0.001, 0.001, 0.001, 0.001])
-        
+
         bound = verifier.verify(original, compressed, "test_data")
         # Ошибка должна быть в пределах границы
         assert bound.bound >= 0.001
@@ -173,7 +173,7 @@ class TestChernoffVerifier:
         verifier = ChernoffVerifier(domain="financial", safety_factor=2.0)
         original = np.array([100.0, 200.0, 300.0, 400.0])
         compressed = original + np.array([10.0, 10.0, 10.0, 10.0])
-        
+
         bound = verifier.verify(original, compressed, "test_data")
         status = verifier.get_status(bound)
         # Большая ошибка должна быть COMPROMISED или UNVERIFIED
@@ -184,13 +184,13 @@ class TestChernoffVerifier:
         verifier = ChernoffVerifier(domain="financial")
         original = {"sum": 1000.0, "mean": 250.0, "count": 4.0}
         compressed = {"sum": 1000.1, "mean": 250.02, "count": 4.0}
-        
+
         bounds = verifier.verify_invariants(original, compressed)
-        
+
         assert "sum" in bounds
         assert "mean" in bounds
         assert "count" in bounds
-        
+
         # Count должен быть идеальным
         assert bounds["count"].bound == 0.0
 
@@ -199,9 +199,9 @@ class TestChernoffVerifier:
         verifier = ChernoffVerifier(domain="financial")
         original = {"sum": 1000.0, "mean": 250.0}
         compressed = {"sum": 1000.1}  # mean потерян
-        
+
         bounds = verifier.verify_invariants(original, compressed)
-        
+
         assert bounds["mean"].bound == float('inf')
         assert verifier.is_valid(bounds["mean"]) is False
 

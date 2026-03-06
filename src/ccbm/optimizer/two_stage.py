@@ -16,10 +16,9 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
 
-from ccbm.analyzer import Span, CriticalityLevel
-from ccbm.optimizer import OptimizationEngine, OptimizationResult
+from ccbm.analyzer import Span
+from ccbm.optimizer import OptimizationEngine
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ class TwoStageResult:
     total_reduction: float   # Общий %
     compression_ratio: float
     metadata: dict
-    
+
     def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
@@ -63,24 +62,24 @@ class TwoStageCompressor:
     - L1: Zero-loss сохранение
     - L2-L4: Chernoff-aware сжатие
     """
-    
+
     # Паттерны для coarse filtering
     DUPLICATE_PATTERNS = [
         r'(\s+)',  # Множественные пробелы
         r'(\n\s*\n){2,}',  # Множественные пустые строки
     ]
-    
+
     STOP_WORDS_KK = {
         "және", "мен", "бен", "пен", "үшін", "туралы", "бойынша",
-        "бұл", "бұл", "сол", "ол", "бірақ", "және", "тағы",
+        "бұл", "сол", "ол", "бірақ", "тағы",
     }
-    
+
     STOP_WORDS_RU = {
         "и", "в", "на", "с", "к", "по", "для", "от", "до", "из",
         "этот", "эта", "это", "эти", "тот", "та", "то", "те",
         "но", "а", "же", "бы", "ли", "как", "так", "что", "чем",
     }
-    
+
     def __init__(self, aggressive: bool = False):
         """
         Инициализация.
@@ -90,8 +89,8 @@ class TwoStageCompressor:
         """
         self.aggressive = aggressive
         self._optimizer = OptimizationEngine()
-    
-    def compress(self, text: str, spans: Optional[List[Span]] = None) -> TwoStageResult:
+
+    def compress(self, text: str, spans: list[Span] | None = None) -> TwoStageResult:
         """
         Двухэтапное сжатие.
         
@@ -103,13 +102,13 @@ class TwoStageCompressor:
             TwoStageResult
         """
         original_length = len(text)
-        
+
         # Stage 1: Coarse-grain filter
         stage1_text = self._coarse_filter(text, spans)
         stage1_reduction = (original_length - len(stage1_text)) / max(1, original_length) * 100
-        
+
         logger.info(f"Stage 1: Удалено {stage1_reduction:.1f}% ({original_length} → {len(stage1_text)})")
-        
+
         # Stage 2: Fine-grain с верификацией
         if spans:
             # Если спаны уже есть, используем их
@@ -118,12 +117,12 @@ class TwoStageCompressor:
         else:
             # Иначе создаём простой спан
             compressed_text = self._fine_compress(stage1_text)
-        
+
         stage2_reduction = (len(stage1_text) - len(compressed_text)) / max(1, len(stage1_text)) * 100
         total_reduction = (original_length - len(compressed_text)) / max(1, original_length) * 100
-        
+
         compression_ratio = original_length / max(1, len(compressed_text))
-        
+
         return TwoStageResult(
             original_text=text,
             stage1_text=stage1_text,
@@ -138,8 +137,8 @@ class TwoStageCompressor:
                 "stage2_methods": ["chernoff_verification", "level_based_compression"],
             },
         )
-    
-    def _coarse_filter(self, text: str, spans: Optional[List[Span]] = None) -> str:
+
+    def _coarse_filter(self, text: str, spans: list[Span] | None = None) -> str:
         """
         Stage 1: Coarse-grain filter.
         
@@ -151,20 +150,20 @@ class TwoStageCompressor:
             Отфильтрованный текст
         """
         result = text
-        
+
         # 1. Удаление дубликатов паттернов
         for pattern in self.DUPLICATE_PATTERNS:
             result = re.sub(pattern, ' ', result)
-        
+
         # 2. Удаление stop words (только для L4 спанов)
         if self.aggressive:
             result = self._remove_stop_words(result)
-        
+
         # 3. Удаление "мусорных" паттернов
         result = self._remove_noise_patterns(result)
-        
+
         return result.strip()
-    
+
     def _remove_stop_words(self, text: str) -> str:
         """
         Удаление stop words.
@@ -177,14 +176,14 @@ class TwoStageCompressor:
         """
         words = text.split()
         stop_words = self.STOP_WORDS_KK | self.STOP_WORDS_RU
-        
+
         filtered = [
             word for word in words
             if word.lower() not in stop_words or len(word) > 3
         ]
-        
+
         return " ".join(filtered)
-    
+
     def _remove_noise_patterns(self, text: str) -> str:
         """
         Удаление "мусорных" паттернов.
@@ -197,17 +196,17 @@ class TwoStageCompressor:
         """
         # Удаление HTML-подобных тегов
         text = re.sub(r'<[^>]+>', '', text)
-        
+
         # Удаление email (если не L1)
         if self.aggressive:
             text = re.sub(r'\S+@\S+', '[EMAIL]', text)
-        
+
         # Удаление URL (если не критичные)
         if self.aggressive:
             text = re.sub(r'https?://\S+', '[URL]', text)
-        
+
         return text
-    
+
     def _fine_compress(self, text: str) -> str:
         """
         Stage 2: Fine-grain сжатие.
@@ -220,11 +219,11 @@ class TwoStageCompressor:
         """
         # Простое сжатие (fallback)
         compressed = " ".join(text.split())
-        
+
         if len(compressed) > 500:
             sentences = compressed.split('.')
             compressed = '. '.join(sentences[:5]) + '.'
-        
+
         return compressed
 
 
@@ -236,7 +235,7 @@ class TwoStageConfig:
     preserve_l1: bool = True
     enable_stage1: bool = True
     enable_stage2: bool = True
-    
+
     def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
@@ -250,8 +249,8 @@ class TwoStageConfig:
 
 def compress_two_stage(
     text: str,
-    spans: Optional[List[Span]] = None,
-    config: Optional[TwoStageConfig] = None,
+    spans: list[Span] | None = None,
+    config: TwoStageConfig | None = None,
 ) -> TwoStageResult:
     """
     Двухэтапное сжатие текста.
@@ -266,7 +265,7 @@ def compress_two_stage(
     """
     if config is None:
         config = TwoStageConfig()
-    
+
     compressor = TwoStageCompressor(aggressive=config.aggressive)
-    
+
     return compressor.compress(text, spans)

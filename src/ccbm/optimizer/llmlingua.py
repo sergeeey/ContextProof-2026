@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from llmlingua import PromptCompressor
 
@@ -30,21 +30,21 @@ class CompressionResult:
     compressed_tokens: int
     compression_ratio: float
     method: str
-    metadata: Optional[Dict[str, Any]] = None
-    
+    metadata: dict[str, Any] | None = None
+
     @property
     def tokens_saved(self) -> int:
         """Количество сохранённых токенов."""
         return self.original_tokens - self.compressed_tokens
-    
+
     @property
     def savings_percent(self) -> float:
         """Процент сэкономленных токенов."""
         if self.original_tokens == 0:
             return 0.0
         return (self.tokens_saved / self.original_tokens) * 100
-    
-    def to_dict(self) -> Dict:
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "original_text": self.original_text,
@@ -68,7 +68,7 @@ class LLMLinguaCompressor:
     - LongLLMLingua (для длинных документов)
     - Кастомные настройки сжатия
     """
-    
+
     def __init__(
         self,
         model_name: str = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
@@ -83,8 +83,8 @@ class LLMLinguaCompressor:
         """
         self.model_name = model_name
         self.device = device
-        self._compressor: Optional[PromptCompressor] = None
-    
+        self._compressor: PromptCompressor | None = None
+
     @property
     def compressor(self) -> PromptCompressor:
         """Ленивая инициализация компрессора."""
@@ -95,7 +95,7 @@ class LLMLinguaCompressor:
                 model_device=self.device,
             )
         return self._compressor
-    
+
     def compress(
         self,
         text: str,
@@ -103,7 +103,7 @@ class LLMLinguaCompressor:
         instruction: str = "",
         context: str = "",
         rank_method: str = "llmlingua2",
-        additional_compress_kwargs: Optional[Dict] = None,
+        additional_compress_kwargs: dict | None = None,
     ) -> CompressionResult:
         """
         Сжатие текста через LLMLingua.
@@ -129,13 +129,13 @@ class LLMLinguaCompressor:
                 rank_method=rank_method,
                 **(additional_compress_kwargs or {}),
             )
-            
+
             compressed_text = compressed.get("compressed_prompt", "")
-            
+
             # Оценка токенов (приблизительно)
             original_tokens = self._estimate_tokens(text)
             compressed_tokens = self._estimate_tokens(compressed_text)
-            
+
             return CompressionResult(
                 original_text=text,
                 compressed_text=compressed_text,
@@ -149,21 +149,21 @@ class LLMLinguaCompressor:
                     "instruction": instruction,
                 },
             )
-            
+
         except Exception as e:
             logger.error(f"Ошибка сжатия LLMLingua: {e}")
             # Fallback на базовое сжатие
             return self._fallback_compress(text)
-    
+
     def compress_prompt(
         self,
-        texts: List[str],
+        texts: list[str],
         target_token: int = 300,
         instruction: str = "",
         context: str = "",
         rank_method: str = "llmlingua2",
         **kwargs,
-    ) -> Dict:
+    ) -> dict:
         """
         Сжатие промпта через LLMLingua.
         
@@ -184,7 +184,7 @@ class LLMLinguaCompressor:
             ratio=target_token / sum(self._estimate_tokens(t) for t in texts) if texts else 0.5,
             **kwargs,
         )
-    
+
     def compress_long(
         self,
         text: str,
@@ -208,12 +208,12 @@ class LLMLinguaCompressor:
                 question=question,
                 instruction=instruction,
             )
-            
+
             compressed_text = compressed.get("compressed_prompt", "")
-            
+
             original_tokens = self._estimate_tokens(text)
             compressed_tokens = self._estimate_tokens(compressed_text)
-            
+
             return CompressionResult(
                 original_text=text,
                 compressed_text=compressed_text,
@@ -227,11 +227,11 @@ class LLMLinguaCompressor:
                     "instruction": instruction,
                 },
             )
-            
+
         except Exception as e:
             logger.error(f"Ошибка LongLLMLingua: {e}")
             return self._fallback_compress(text)
-    
+
     def _fallback_compress(self, text: str) -> CompressionResult:
         """
         Базовое сжатие при ошибке LLMLingua.
@@ -244,14 +244,14 @@ class LLMLinguaCompressor:
         """
         # Простая эвристика: удаление лишних пробелов, сокращение
         compressed = " ".join(text.split())
-        
+
         if len(compressed) > 500:
             sentences = compressed.split('.')
             compressed = '. '.join(sentences[:5]) + '.'
-        
+
         original_tokens = self._estimate_tokens(text)
         compressed_tokens = self._estimate_tokens(compressed)
-        
+
         return CompressionResult(
             original_text=text,
             compressed_text=compressed,
@@ -261,7 +261,7 @@ class LLMLinguaCompressor:
             method="fallback",
             metadata={"reason": "LLMLingua unavailable"},
         )
-    
+
     @staticmethod
     def _estimate_tokens(text: str) -> int:
         """
@@ -289,8 +289,8 @@ class LLMLinguaConfig:
     rank_method: str = "llmlingua2"
     instruction: str = ""
     context: str = ""
-    
-    def to_dict(self) -> Dict:
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "model_name": self.model_name,
@@ -302,7 +302,7 @@ class LLMLinguaConfig:
         }
 
 
-def create_compressor(config: Optional[LLMLinguaConfig] = None) -> LLMLinguaCompressor:
+def create_compressor(config: LLMLinguaConfig | None = None) -> LLMLinguaCompressor:
     """
     Создание компрессора с конфигурацией.
     
@@ -314,7 +314,7 @@ def create_compressor(config: Optional[LLMLinguaConfig] = None) -> LLMLinguaComp
     """
     if config is None:
         config = LLMLinguaConfig()
-    
+
     return LLMLinguaCompressor(
         model_name=config.model_name,
         device=config.device,

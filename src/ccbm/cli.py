@@ -16,13 +16,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="CCBM — Certified Context Budget Manager",
     )
-    
+
     parser.add_argument(
         "--version", "-v",
         action="store_true",
         help="Show version",
     )
-    
+
     parser.add_argument(
         "command",
         nargs="?",
@@ -30,9 +30,9 @@ def main():
         default="help",
         help="Command to run",
     )
-    
+
     args = parser.parse_args()
-    
+
     if args.version or args.command == "version":
         from ccbm import __version__
         print(f"CCBM v{__version__}")

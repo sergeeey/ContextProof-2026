@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,9 @@ class MetricPoint:
     """Точка метрики."""
     timestamp: float
     value: float
-    labels: Dict[str, str] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict:
+    labels: dict[str, str] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "timestamp": self.timestamp,
@@ -48,10 +48,10 @@ class CCBBMetrics:
     - pii_leak_rate
     - conflict_rate
     """
-    
+
     def __init__(self):
         """Инициализация метрик."""
-        self._metrics: Dict[str, List[MetricPoint]] = {
+        self._metrics: dict[str, list[MetricPoint]] = {
             "latency_breakdown": [],
             "compression_ratio": [],
             "faithfulness_score": [],
@@ -60,9 +60,9 @@ class CCBBMetrics:
             "pii_leak_rate": [],
             "conflict_rate": [],
         }
-        self._current_stage: Optional[str] = None
+        self._current_stage: str | None = None
         self._stage_start: float = 0.0
-    
+
     def start_stage(self, stage: str):
         """
         Начало стадии для замера latency.
@@ -72,16 +72,16 @@ class CCBBMetrics:
         """
         self._current_stage = stage
         self._stage_start = time.time()
-        
+
         logger.debug(f"Started stage: {stage}")
-    
+
     def end_stage(self):
         """Завершение стадии с записью метрики latency."""
         if self._current_stage is None:
             return
-        
+
         elapsed = time.time() - self._stage_start
-        
+
         self._metrics["latency_breakdown"].append(
             MetricPoint(
                 timestamp=time.time(),
@@ -89,12 +89,12 @@ class CCBBMetrics:
                 labels={"stage": self._current_stage},
             )
         )
-        
+
         logger.debug(f"Ended stage: {self._current_stage}, elapsed: {elapsed:.3f}s")
-        
+
         self._current_stage = None
         self._stage_start = 0.0
-    
+
     def record_compression_ratio(self, ratio: float, domain: str = "general"):
         """
         Запись коэффициента сжатия.
@@ -110,7 +110,7 @@ class CCBBMetrics:
                 labels={"domain": domain},
             )
         )
-    
+
     def record_faithfulness_score(self, score: float):
         """
         Запись faithfulness score.
@@ -125,7 +125,7 @@ class CCBBMetrics:
                 labels={},
             )
         )
-    
+
     def record_certificate_fail(self, reason: str):
         """
         Запись failure сертификата.
@@ -140,7 +140,7 @@ class CCBBMetrics:
                 labels={"reason": reason},
             )
         )
-    
+
     def record_pii_detection(self, detected: int, total: int):
         """
         Запись PII detection recall.
@@ -158,7 +158,7 @@ class CCBBMetrics:
                     labels={},
                 )
             )
-    
+
     def record_pii_leak(self, leaked: int, total: int):
         """
         Запись PII leak rate.
@@ -176,7 +176,7 @@ class CCBBMetrics:
                     labels={},
                 )
             )
-    
+
     def record_conflict(self, conflict_count: int, total_operations: int):
         """
         Запись conflict rate.
@@ -194,8 +194,8 @@ class CCBBMetrics:
                     labels={},
                 )
             )
-    
-    def get_metric(self, name: str, window_seconds: Optional[float] = None) -> List[MetricPoint]:
+
+    def get_metric(self, name: str, window_seconds: float | None = None) -> list[MetricPoint]:
         """
         Получение метрики.
         
@@ -208,19 +208,19 @@ class CCBBMetrics:
         """
         if name not in self._metrics:
             return []
-        
+
         points = self._metrics[name]
-        
+
         if window_seconds is None:
             return points
-        
+
         # Фильтрация по временному окну
         now = time.time()
         cutoff = now - window_seconds
-        
+
         return [p for p in points if p.timestamp >= cutoff]
-    
-    def get_summary(self) -> Dict[str, Any]:
+
+    def get_summary(self) -> dict[str, Any]:
         """
         Получение сводки всех метрик.
         
@@ -228,7 +228,7 @@ class CCBBMetrics:
             Словарь со сводкой
         """
         summary = {}
-        
+
         for name, points in self._metrics.items():
             if not points:
                 summary[name] = {
@@ -238,7 +238,7 @@ class CCBBMetrics:
                     "max": 0.0,
                 }
                 continue
-            
+
             values = [p.value for p in points]
             summary[name] = {
                 "count": len(points),
@@ -247,7 +247,7 @@ class CCBBMetrics:
                 "max": max(values),
                 "latest": points[-1].value if points else 0.0,
             }
-        
+
         # Дополнительно: latency breakdown по стадиям
         latency_points = self._metrics["latency_breakdown"]
         if latency_points:
@@ -257,7 +257,7 @@ class CCBBMetrics:
                 if stage not in by_stage:
                     by_stage[stage] = []
                 by_stage[stage].append(point.value)
-            
+
             summary["latency_by_stage"] = {
                 stage: {
                     "count": len(values),
@@ -267,7 +267,7 @@ class CCBBMetrics:
                 }
                 for stage, values in by_stage.items()
             }
-        
+
         # Compression ratio по доменам
         compression_points = self._metrics["compression_ratio"]
         if compression_points:
@@ -277,7 +277,7 @@ class CCBBMetrics:
                 if domain not in by_domain:
                     by_domain[domain] = []
                 by_domain[domain].append(point.value)
-            
+
             summary["compression_by_domain"] = {
                 domain: {
                     "count": len(values),
@@ -287,9 +287,9 @@ class CCBBMetrics:
                 }
                 for domain, values in by_domain.items()
             }
-        
+
         return summary
-    
+
     def export_prometheus(self) -> str:
         """
         Экспорт в формате Prometheus.
@@ -298,14 +298,14 @@ class CCBBMetrics:
             Строка в формате Prometheus
         """
         lines = []
-        
+
         for name, points in self._metrics.items():
             if not points:
                 continue
-            
+
             # Создаём метрику
             metric_name = f"ccbm_{name}"
-            
+
             # Group by labels
             by_labels = {}
             for point in points:
@@ -313,17 +313,17 @@ class CCBBMetrics:
                 if label_key not in by_labels:
                     by_labels[label_key] = []
                 by_labels[label_key].append(point.value)
-            
+
             # Выводим последнюю точку для каждого набора labels
             for label_key, values in by_labels.items():
                 lines.append(f"# TYPE {metric_name} gauge")
                 lines.append(f'{metric_name}{{{label_key}}} {values[-1]}')
-        
+
         return "\n".join(lines)
 
 
 # Global instance
-_metrics: Optional[CCBBMetrics] = None
+_metrics: CCBBMetrics | None = None
 
 
 def get_metrics() -> CCBBMetrics:
@@ -343,15 +343,15 @@ class measure_stage:
         with measure_stage("analyze"):
             # код стадии
     """
-    
+
     def __init__(self, stage: str):
         self.stage = stage
         self.metrics = get_metrics()
-    
+
     def __enter__(self):
         self.metrics.start_stage(self.stage)
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.metrics.end_stage()
         return False

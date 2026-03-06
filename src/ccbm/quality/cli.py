@@ -7,8 +7,6 @@ CCBM Quality Gates CLI
 import argparse
 import json
 import sys
-from pathlib import Path
-from typing import Dict, List, Optional
 
 
 def calculate_readiness_score(
@@ -18,7 +16,7 @@ def calculate_readiness_score(
     security_issues: int,
     type_errors: int,
     lint_errors: int,
-) -> Dict:
+) -> dict:
     """
     Расчёт Readiness Score.
     
@@ -32,19 +30,19 @@ def calculate_readiness_score(
     # Correctness (30%)
     test_pass_rate = tests_passed / tests_total if tests_total > 0 else 0
     correctness = min(1.0, test_pass_rate * (1 - type_errors * 0.1) * (1 - lint_errors * 0.05))
-    
+
     # Validation (25%)
     validation = max(0, 1.0 - security_issues * 0.2)
-    
+
     # Coverage (20%)
     coverage_score = coverage / 100.0
-    
+
     # Monitoring (15%) - упрощённо считаем что OK если нет критических ошибок
     monitoring = 0.8 if security_issues == 0 else 0.5
-    
+
     # Documentation (10%) - упрощённо считаем что OK
     documentation = 0.9
-    
+
     # Weighted score
     score = (
         0.30 * correctness +
@@ -53,7 +51,7 @@ def calculate_readiness_score(
         0.15 * monitoring +
         0.10 * documentation
     )
-    
+
     return {
         "score": round(score, 3),
         "components": {
@@ -79,7 +77,7 @@ def get_verdict(score: float) -> str:
         return "❌ REJECT"
 
 
-def classify_pr(files: List[str]) -> str:
+def classify_pr(files: list[str]) -> str:
     """Классификация PR по файлам."""
     critical_paths = [
         "src/ccbm/verifier/",
@@ -87,35 +85,35 @@ def classify_pr(files: List[str]) -> str:
         "src/ccbm/mcp/server.py",
         ".ccbm/skills/",
     ]
-    
+
     major_paths = [
         "src/ccbm/analyzer/",
         "src/ccbm/optimizer/",
         "tests/",
     ]
-    
+
     # Проверяем на CRITICAL
     for file in files:
         for path in critical_paths:
             if path in file:
                 return "CRITICAL"
-    
+
     # Проверяем на MAJOR
     for file in files:
         for path in major_paths:
             if path in file:
                 return "MAJOR"
-    
+
     # Проверяем на TRIVIAL
     trivial_extensions = [".md", ".rst", ".txt"]
     all_trivial = all(
         any(file.endswith(ext) for ext in trivial_extensions)
         for file in files
     )
-    
+
     if all_trivial:
         return "TRIVIAL"
-    
+
     return "MINOR"
 
 
@@ -140,7 +138,7 @@ def cmd_check_readiness(args):
         type_errors=args.type_errors,
         lint_errors=args.lint_errors,
     )
-    
+
     if args.report:
         print(json.dumps(result, indent=2))
     else:
@@ -150,7 +148,7 @@ def cmd_check_readiness(args):
         for name, score in result['components'].items():
             status = "✅" if score >= 0.9 else "🟡" if score >= 0.7 else "❌"
             print(f"  {status} {name}: {score}")
-    
+
     # Exit code based on verdict
     if result['verdict'].startswith("❌"):
         sys.exit(1)
@@ -164,7 +162,7 @@ def cmd_classify_pr(args):
     """Команда классификации PR."""
     classification = classify_pr(args.files)
     threshold = get_threshold(classification)
-    
+
     print(f"PR Classification: {classification}")
     print(f"Threshold: {threshold}")
     print(f"Files: {', '.join(args.files)}")
@@ -192,9 +190,9 @@ def main():
         description="CCBM Quality Gates CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
+
     # check-readiness
     parser_readiness = subparsers.add_parser(
         "check-readiness",
@@ -242,7 +240,7 @@ def main():
         help="Output JSON report",
     )
     parser_readiness.set_defaults(func=cmd_check_readiness)
-    
+
     # classify-pr
     parser_classify = subparsers.add_parser(
         "classify-pr",
@@ -254,7 +252,7 @@ def main():
         help="List of changed files",
     )
     parser_classify.set_defaults(func=cmd_classify_pr)
-    
+
     # validate-golden
     parser_golden = subparsers.add_parser(
         "validate-golden",
@@ -266,14 +264,14 @@ def main():
         help="Verbose output",
     )
     parser_golden.set_defaults(func=cmd_validate_golden)
-    
+
     # Parse and execute
     args = parser.parse_args()
-    
+
     if args.command is None:
         parser.print_help()
         sys.exit(1)
-    
+
     args.func(args)
 
 

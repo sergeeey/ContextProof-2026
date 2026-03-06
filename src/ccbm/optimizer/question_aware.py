@@ -16,11 +16,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
 
-import numpy as np
-
-from ccbm.analyzer import Span, CriticalityLevel
+from ccbm.analyzer import CriticalityLevel, Span
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,7 @@ class RankedSpan:
     relevance_score: float  # 0.0 - 1.0
     position_bonus: float   # Бонус за позицию (начало текста важнее)
     final_score: float = 0.0
-    
+
     def __post_init__(self):
         self.final_score = self.relevance_score * 0.7 + self.position_bonus * 0.3
 
@@ -46,7 +43,7 @@ class QuestionAwareCompressor:
     2. Переупорядочивание (L1 → начало, релевантные → выше)
     3. Сжатие с учётом бюджета и приоритетов
     """
-    
+
     def __init__(self, model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"):
         """
         Инициализация.
@@ -57,7 +54,7 @@ class QuestionAwareCompressor:
         self.model_name = model_name
         self._model = None
         self._tokenizer = None
-    
+
     @property
     def model(self):
         """Ленивая загрузка модели."""
@@ -70,12 +67,12 @@ class QuestionAwareCompressor:
                 logger.warning("sentence-transformers не установлен. Используем fallback (keyword matching)")
                 self._model = "fallback"
         return self._model
-    
+
     def rank_spans_by_question(
         self,
-        spans: List[Span],
+        spans: list[Span],
         question: str,
-    ) -> List[RankedSpan]:
+    ) -> list[RankedSpan]:
         """
         Ранжирование спанов по релевантности к вопросу.
         
@@ -88,31 +85,31 @@ class QuestionAwareCompressor:
         """
         if not spans:
             return []
-        
+
         ranked = []
-        
+
         # Вычисляем релевантность для каждого спана
         for i, span in enumerate(spans):
             relevance = self._compute_relevance(span.text, question)
             position_bonus = 1.0 / (1.0 + i * 0.1)  # Чем ближе к началу, тем выше бонус
-            
+
             ranked_span = RankedSpan(
                 span=span,
                 relevance_score=relevance,
                 position_bonus=position_bonus,
             )
             ranked.append(ranked_span)
-        
+
         # Сортировка по final_score (убывание)
         ranked.sort(key=lambda r: r.final_score, reverse=True)
-        
+
         return ranked
-    
+
     def reorder_and_compress(
         self,
-        ranked_spans: List[RankedSpan],
+        ranked_spans: list[RankedSpan],
         target_budget: int = 4000,
-    ) -> Tuple[str, dict]:
+    ) -> tuple[str, dict]:
         """
         Переупорядочивание и сжатие.
         
@@ -133,29 +130,29 @@ class QuestionAwareCompressor:
         l2_spans = [r for r in ranked_spans if r.span.level == CriticalityLevel.L2]
         l3_spans = [r for r in ranked_spans if r.span.level == CriticalityLevel.L3]
         l4_spans = [r for r in ranked_spans if r.span.level == CriticalityLevel.L4]
-        
+
         # 1. L1 всегда в начало (критичные данные)
         result_spans = [r.span for r in l1_spans]
-        
+
         # 2. L2 (юридические) → следующие
         result_spans.extend([r.span for r in l2_spans])
-        
+
         # 3. L3 (PII) → маскируем или сохраняем
         result_spans.extend([r.span for r in l3_spans])
-        
+
         # 4. L4 (контекст) → с учётом релевантности и бюджета
         current_length = sum(len(s.text) for s in result_spans)
         remaining_budget = max(0, target_budget - current_length)
-        
+
         # Сортируем L4 по релевантности
         l4_spans.sort(key=lambda r: r.final_score, reverse=True)
-        
+
         for ranked in l4_spans:
             if current_length >= target_budget:
                 break
-            
+
             span_text = ranked.span.text
-            
+
             # Если спан не влезает полностью → сжимаем
             if current_length + len(span_text) > target_budget:
                 # Сжимаем пропорционально релевантности
@@ -166,13 +163,13 @@ class QuestionAwareCompressor:
             else:
                 result_spans.append(span_text)
                 current_length += len(span_text)
-        
+
         # Сборка итогового текста
         compressed_text = " ".join(
             s if isinstance(s, str) else s.text
             for s in result_spans
         )
-        
+
         metadata = {
             "question_aware": True,
             "l1_preserved": len(l1_spans),
@@ -182,9 +179,9 @@ class QuestionAwareCompressor:
             "total_spans": len(result_spans),
             "compression_ratio": len("".join(r.span.text for r in ranked_spans)) / max(1, len(compressed_text)),
         }
-        
+
         return compressed_text, metadata
-    
+
     def _compute_relevance(self, text: str, question: str) -> float:
         """
         Вычисление релевантности текста к вопросу.
@@ -198,24 +195,24 @@ class QuestionAwareCompressor:
         """
         if not text or not question:
             return 0.0
-        
+
         # Fallback: keyword matching
         if self.model == "fallback":
             return self._keyword_relevance(text, question)
-        
+
         # Semantic similarity
         try:
             from sentence_transformers import util
-            
+
             embeddings = self.model.encode([text, question], convert_to_tensor=True)
             similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
-            
+
             return max(0.0, min(1.0, similarity))
-            
+
         except Exception as e:
             logger.warning(f"Ошибка semantic similarity: {e}")
             return self._keyword_relevance(text, question)
-    
+
     @staticmethod
     def _keyword_relevance(text: str, question: str) -> float:
         """
@@ -230,7 +227,7 @@ class QuestionAwareCompressor:
         """
         text_lower = text.lower()
         question_words = set(question.lower().split())
-        
+
         matches = sum(1 for word in question_words if word in text_lower)
         return matches / max(1, len(question_words))
 
@@ -243,7 +240,7 @@ class CompressionConfig:
     reorder_enabled: bool = True
     relevance_threshold: float = 0.3  # Минимальная релевантность для сохранения
     model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    
+
     def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
@@ -256,10 +253,10 @@ class CompressionConfig:
 
 
 def compress_with_question(
-    spans: List[Span],
+    spans: list[Span],
     question: str,
-    config: Optional[CompressionConfig] = None,
-) -> Tuple[str, dict]:
+    config: CompressionConfig | None = None,
+) -> tuple[str, dict]:
     """
     Сжатие с учётом вопроса.
     
@@ -273,11 +270,11 @@ def compress_with_question(
     """
     if config is None:
         config = CompressionConfig()
-    
+
     compressor = QuestionAwareCompressor(model_name=config.model_name)
-    
+
     # Ранжирование
     ranked = compressor.rank_spans_by_question(spans, question)
-    
+
     # Переупорядочивание и сжатие
     return compressor.reorder_and_compress(ranked, config.target_budget)

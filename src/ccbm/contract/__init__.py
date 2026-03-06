@@ -5,11 +5,11 @@ CCBM Contract — Information Contract Engine.
 """
 
 from .information_contract import (
+    ContractVersion,
+    InformationClass,
     InformationContract,
     InformationContractEngine,
     InformationSegment,
-    InformationClass,
-    ContractVersion,
     create_information_contract,
 )
 

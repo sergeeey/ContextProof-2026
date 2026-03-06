@@ -8,9 +8,8 @@
 - L4: Aggressive compression
 """
 
-import pytest
+from ccbm.analyzer import CriticalityLevel, Span
 from ccbm.optimizer import OptimizationEngine, OptimizationResult
-from ccbm.analyzer import Span, CriticalityLevel
 
 
 class TestOptimizationEngine:
@@ -33,7 +32,7 @@ class TestOptimizationEngine:
             ),
         ]
         result = self.engine.optimize(spans)
-        
+
         # L1 должен быть сохранён
         assert "950101300038" in result.optimized_text
         assert result.compression_ratio >= 1.0
@@ -50,7 +49,7 @@ class TestOptimizationEngine:
             ),
         ]
         result = self.engine.optimize(spans)
-        
+
         # PII должен быть замаскирован
         assert "Иван Иванов" not in result.optimized_text
         assert "[PII REDACTED]" in result.optimized_text
@@ -68,7 +67,7 @@ class TestOptimizationEngine:
             ),
         ]
         result = self.engine.optimize(spans)
-        
+
         # L4 должен быть сжат
         assert len(result.optimized_text) < len(long_text)
         assert result.compression_ratio > 1.0
@@ -99,7 +98,7 @@ class TestOptimizationEngine:
             ),
         ]
         result = self.engine.optimize(spans)
-        
+
         # L1 сохранён
         assert "950101300038" in result.optimized_text
         # L3 замаскирован
@@ -114,7 +113,7 @@ class TestOptimizationEngine:
             Span(text="L3 PII", start=20, end=26, level=CriticalityLevel.L3, confidence=0.9),
         ]
         result = self.engine.optimize(spans)
-        
+
         # Проверяем что спаны собраны в правильном порядке
         assert result.spans_preserved == 3
 
@@ -125,7 +124,7 @@ class TestOptimizationEngine:
             Span(text="Some text", start=9, end=18, level=CriticalityLevel.L4, confidence=1.0),
         ]
         result = self.engine.optimize(spans)
-        
+
         assert result.metadata is not None
         assert "l1_preserved" in result.metadata
         assert "l4_summarized" in result.metadata
@@ -191,7 +190,7 @@ class TestPIIMasking:
             confidence=0.9,
         )
         masked = self.engine._mask_pii(span)
-        
+
         assert masked.text == "[PII REDACTED]"
         assert masked.level == CriticalityLevel.L3
 
@@ -205,7 +204,7 @@ class TestPIIMasking:
             confidence=0.9,
         )
         masked = self.engine._mask_pii(span)
-        
+
         # Должно быть замаскировано независимо от длины
         assert masked.text == "[PII REDACTED]"
 
@@ -227,7 +226,7 @@ class TestContextCompression:
             confidence=1.0,
         )
         compressed = self.engine._compress_context(span)
-        
+
         # Короткий текст может остаться без изменений
         assert len(compressed.text) <= len(span.text)
 
@@ -242,7 +241,7 @@ class TestContextCompression:
             confidence=1.0,
         )
         compressed = self.engine._compress_context(span)
-        
+
         # Длинный текст должен быть сжат
         assert len(compressed.text) < len(long_text)
         assert len(compressed.text) <= 500  # Лимит
@@ -257,7 +256,7 @@ class TestContextCompression:
             confidence=1.0,
         )
         compressed = self.engine._compress_context(span)
-        
+
         # Пробелы должны быть нормализованы
         assert "  " not in compressed.text  # Нет двойных пробелов
 
@@ -272,7 +271,7 @@ class TestContextCompression:
             confidence=1.0,
         )
         compressed = self.engine._compress_context(span)
-        
+
         # Первые предложения должны быть сохранены
         assert "Первое предложение" in compressed.text
 
@@ -284,7 +283,7 @@ class TestBudgetManagement:
         """Установка бюджета."""
         engine = OptimizationEngine(target_budget=4000)
         assert engine.target_budget == 4000
-        
+
         engine.set_budget(8000)
         assert engine.target_budget == 8000
 
@@ -292,7 +291,7 @@ class TestBudgetManagement:
         """Разные бюджеты для разных сценариев."""
         engine_strict = OptimizationEngine(target_budget=2000)
         engine_relaxed = OptimizationEngine(target_budget=8000)
-        
+
         assert engine_strict.target_budget < engine_relaxed.target_budget
 
 
@@ -306,7 +305,7 @@ class TestEdgeCases:
     def test_empty_spans(self):
         """Пустой список спанов."""
         result = self.engine.optimize([])
-        
+
         assert result.original_text == ""
         assert result.optimized_text == ""
         assert result.compression_ratio == 1.0
@@ -317,7 +316,7 @@ class TestEdgeCases:
             Span(text="1000 KZT", start=0, end=8, level=CriticalityLevel.L1, confidence=0.95),
         ]
         result = self.engine.optimize(spans)
-        
+
         assert result.original_text == "1000 KZT"
         assert result.optimized_text == "1000 KZT"
         assert result.compression_ratio == 1.0
@@ -328,7 +327,7 @@ class TestEdgeCases:
             Span(text="Long text " * 100, start=0, end=1000, level=CriticalityLevel.L4, confidence=1.0),
         ]
         result = self.engine.optimize(spans)
-        
+
         # L4 должен быть сжат или хотя бы обработан
         assert len(result.optimized_text) > 0
         assert result.spans_preserved == 1

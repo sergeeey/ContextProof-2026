@@ -5,11 +5,11 @@ MCP — Model Context Protocol для CCBM.
 """
 
 from .server import (
-    ccbm_server,
-    main,
-    list_tools,
     call_tool,
+    ccbm_server,
     list_resources,
+    list_tools,
+    main,
     read_resource,
 )
 

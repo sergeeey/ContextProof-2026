@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class QACategory(Enum):
@@ -48,9 +48,9 @@ class QAPair:
     expected_answer: str
     answer_type: AnswerType
     tolerance: float = 0.0  # Для числовых ответов
-    metadata: Optional[Dict[str, Any]] = None
-    
-    def to_dict(self) -> Dict:
+    metadata: dict[str, Any] | None = None
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "id": self.id,
@@ -73,9 +73,9 @@ class AdversarialTest:
     question: str
     expected_answer: str
     difficulty: str  # EASY, MEDIUM, HARD
-    metadata: Optional[Dict[str, Any]] = None
-    
-    def to_dict(self) -> Dict:
+    metadata: dict[str, Any] | None = None
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "id": self.id,
@@ -96,17 +96,17 @@ class QAGoldenSet:
     - 30 QA пар
     - 10 Adversarial тестов
     """
-    
+
     def __init__(self):
         """Инициализация Golden Set."""
-        self.qa_pairs: List[QAPair] = []
-        self.adversarial_tests: List[AdversarialTest] = []
+        self.qa_pairs: list[QAPair] = []
+        self.adversarial_tests: list[AdversarialTest] = []
         self._load_default()
-    
+
     def _load_default(self):
         """Загрузка стандартного набора."""
         # ==================== QA PAIRS ====================
-        
+
         # IIN Extraction (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -150,7 +150,7 @@ class QAGoldenSet:
                 answer_type=AnswerType.EXACT,
             ),
         ])
-        
+
         # Money Extraction (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -195,7 +195,7 @@ class QAGoldenSet:
                 answer_type=AnswerType.NUMERIC,
             ),
         ])
-        
+
         # Date Extraction (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -239,7 +239,7 @@ class QAGoldenSet:
                 answer_type=AnswerType.EXACT,
             ),
         ])
-        
+
         # Company Name (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -283,7 +283,7 @@ class QAGoldenSet:
                 answer_type=AnswerType.EXACT,
             ),
         ])
-        
+
         # Numeric Invariant (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -327,7 +327,7 @@ class QAGoldenSet:
                 answer_type=AnswerType.NUMERIC,
             ),
         ])
-        
+
         # Multi-hop reasoning (5 тестов)
         self.qa_pairs.extend([
             QAPair(
@@ -371,9 +371,9 @@ class QAGoldenSet:
                 answer_type=AnswerType.EXACT,
             ),
         ])
-        
+
         # ==================== ADVERSARIAL TESTS ====================
-        
+
         # Lost in the middle (3 теста)
         self.adversarial_tests.extend([
             AdversarialTest(
@@ -401,7 +401,7 @@ class QAGoldenSet:
                 difficulty="HARD",
             ),
         ])
-        
+
         # Permutation (3 теста)
         self.adversarial_tests.extend([
             AdversarialTest(
@@ -430,7 +430,7 @@ class QAGoldenSet:
                 difficulty="MEDIUM",
             ),
         ])
-        
+
         # Hard negative (4 теста)
         self.adversarial_tests.extend([
             AdversarialTest(
@@ -470,8 +470,8 @@ class QAGoldenSet:
                 metadata={"distractor": "750101300038", "correction": "650202400047"},
             ),
         ])
-    
-    def get_qa_pairs(self, category: Optional[QACategory] = None) -> List[QAPair]:
+
+    def get_qa_pairs(self, category: QACategory | None = None) -> list[QAPair]:
         """
         Получение QA пар с фильтрацией.
         
@@ -484,8 +484,8 @@ class QAGoldenSet:
         if category:
             return [qa for qa in self.qa_pairs if qa.category == category]
         return self.qa_pairs
-    
-    def get_adversarial_tests(self, test_type: Optional[str] = None) -> List[AdversarialTest]:
+
+    def get_adversarial_tests(self, test_type: str | None = None) -> list[AdversarialTest]:
         """
         Получение adversarial тестов с фильтрацией.
         
@@ -498,7 +498,7 @@ class QAGoldenSet:
         if test_type:
             return [t for t in self.adversarial_tests if t.test_type == test_type]
         return self.adversarial_tests
-    
+
     def export_to_json(self, path: str = "golden_set_qa.json"):
         """
         Экспорт в JSON.
@@ -513,11 +513,11 @@ class QAGoldenSet:
             "qa_pairs": [qa.to_dict() for qa in self.qa_pairs],
             "adversarial_tests": [t.to_dict() for t in self.adversarial_tests],
         }
-        
+
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-    
-    def get_statistics(self) -> Dict[str, Any]:
+
+    def get_statistics(self) -> dict[str, Any]:
         """
         Получение статистики Golden Set.
         
@@ -528,12 +528,12 @@ class QAGoldenSet:
         for qa in self.qa_pairs:
             cat = qa.category.value
             by_category[cat] = by_category.get(cat, 0) + 1
-        
+
         by_type = {}
         for test in self.adversarial_tests:
             t = test.test_type
             by_type[t] = by_type.get(t, 0) + 1
-        
+
         return {
             "total_qa_pairs": len(self.qa_pairs),
             "total_adversarial_tests": len(self.adversarial_tests),
@@ -548,7 +548,7 @@ class QAGoldenSet:
 
 
 # Global instance
-_golden_set: Optional[QAGoldenSet] = None
+_golden_set: QAGoldenSet | None = None
 
 
 def get_golden_set() -> QAGoldenSet:

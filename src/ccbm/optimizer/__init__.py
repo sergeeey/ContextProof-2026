@@ -10,7 +10,8 @@ Optimization Engine — сжатие и фильтрация контекста.
 
 from dataclasses import dataclass
 from typing import List, Optional
-from ccbm.analyzer import Span, CriticalityLevel
+
+from ccbm.analyzer import CriticalityLevel, Span
 
 
 @dataclass
@@ -21,7 +22,7 @@ class OptimizationResult:
     compression_ratio: float
     spans_removed: int
     spans_preserved: int
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
 
 
 class OptimizationEngine:
@@ -34,7 +35,7 @@ class OptimizationEngine:
     - L3: Masking / Anonymization
     - L4: Aggressive compression (extractive summarization)
     """
-    
+
     def __init__(self, target_budget: int = 4000):
         """
         Инициализация движка оптимизации.
@@ -49,8 +50,8 @@ class OptimizationEngine:
             "l3_masked": 0,
             "l4_summarized": 0,
         }
-    
-    def optimize(self, spans: List[Span]) -> OptimizationResult:
+
+    def optimize(self, spans: list[Span]) -> OptimizationResult:
         """
         Оптимизация набора спанов.
         
@@ -62,38 +63,38 @@ class OptimizationEngine:
         """
         original_text = "".join(s.text for s in sorted(spans, key=lambda x: x.start))
         optimized_spans = []
-        
+
         for span in spans:
             if span.level == CriticalityLevel.L1:
                 # L1: Без потерь
                 optimized_spans.append(span)
                 self.compression_stats["l1_preserved"] += 1
-                
+
             elif span.level == CriticalityLevel.L2:
                 # L2: Сохранение с возможной компрессией
                 optimized_spans.append(span)
                 self.compression_stats["l2_compressed"] += 1
-                
+
             elif span.level == CriticalityLevel.L3:
                 # L3: Маскирование PII
                 masked_span = self._mask_pii(span)
                 optimized_spans.append(masked_span)
                 self.compression_stats["l3_masked"] += 1
-                
+
             elif span.level == CriticalityLevel.L4:
                 # L4: Агрессивное сжатие
                 compressed_span = self._compress_context(span)
                 optimized_spans.append(compressed_span)
                 self.compression_stats["l4_summarized"] += 1
-        
+
         # Сборка оптимизированного текста
         optimized_spans_sorted = sorted(optimized_spans, key=lambda x: x.start)
         optimized_text = "".join(s.text for s in optimized_spans_sorted)
-        
+
         original_len = len(original_text)
         optimized_len = len(optimized_text)
         compression_ratio = original_len / optimized_len if optimized_len > 0 else 1.0
-        
+
         return OptimizationResult(
             original_text=original_text,
             optimized_text=optimized_text,
@@ -102,7 +103,7 @@ class OptimizationEngine:
             spans_preserved=len(optimized_spans),
             metadata=self.compression_stats.copy()
         )
-    
+
     def _mask_pii(self, span: Span) -> Span:
         """Маскирование персональных данных."""
         # TODO: Интеграция с Presidio для умного маскирования
@@ -115,7 +116,7 @@ class OptimizationEngine:
             confidence=span.confidence,
             metadata={"original_type": "pii", "masked": True}
         )
-    
+
     def _compress_context(self, span: Span) -> Span:
         """
         Сжатие контекстного наполнения.
@@ -124,12 +125,12 @@ class OptimizationEngine:
         """
         # Простая эвристика: удаление лишних пробелов и сокращение
         compressed = " ".join(span.text.split())
-        
+
         # Если всё ещё длинный, берём первые предложения
         if len(compressed) > 500:
             sentences = compressed.split('.')
             compressed = '. '.join(sentences[:3]) + '.'
-        
+
         return Span(
             text=compressed,
             start=span.start,
@@ -138,7 +139,7 @@ class OptimizationEngine:
             confidence=span.confidence * 0.95,  # Немного снижаем уверенность
             metadata={"compressed": True, "original_len": len(span.text)}
         )
-    
+
     def set_budget(self, budget: int):
         """Установка нового целевого бюджета токенов."""
         self.target_budget = budget

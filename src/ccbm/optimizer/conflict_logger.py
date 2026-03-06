@@ -19,7 +19,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +50,13 @@ class CompressionConflict:
     conflict_type: ConflictType
     severity: str  # CRITICAL, HIGH, MEDIUM, LOW
     description: str
-    original_data: Dict[str, Any]
-    compressed_data: Dict[str, Any]
+    original_data: dict[str, Any]
+    compressed_data: dict[str, Any]
     resolution: ConflictResolution
     resolved: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "conflict_id": self.conflict_id,
@@ -70,7 +70,7 @@ class CompressionConflict:
             "resolved": self.resolved,
             "metadata": self.metadata,
         }
-    
+
     def to_json(self) -> str:
         """Сериализация в JSON."""
         return json.dumps(self.to_dict(), indent=2)
@@ -85,7 +85,7 @@ class ConflictLogger:
     2. Экспорт в Golden Set для тестов
     3. Метрики для observability
     """
-    
+
     def __init__(self, log_path: str = "conflicts.log"):
         """
         Инициализация логгера.
@@ -94,18 +94,18 @@ class ConflictLogger:
             log_path: Путь к файлу логов
         """
         self.log_path = log_path
-        self.conflicts: List[CompressionConflict] = []
+        self.conflicts: list[CompressionConflict] = []
         self._conflict_counter = 0
-    
+
     def log_conflict(
         self,
         conflict_type: ConflictType,
         severity: str,
         description: str,
-        original_data: Dict[str, Any],
-        compressed_data: Dict[str, Any],
+        original_data: dict[str, Any],
+        compressed_data: dict[str, Any],
         resolution: ConflictResolution,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> CompressionConflict:
         """
         Логирование конфликта.
@@ -124,7 +124,7 @@ class ConflictLogger:
         """
         self._conflict_counter += 1
         conflict_id = f"CONFLICT-{self._conflict_counter:06d}"
-        
+
         conflict = CompressionConflict(
             conflict_id=conflict_id,
             timestamp=time.time_ns(),
@@ -136,19 +136,19 @@ class ConflictLogger:
             resolution=resolution,
             metadata=metadata or {},
         )
-        
+
         self.conflicts.append(conflict)
-        
+
         # Логирование в файл
         self._write_to_log(conflict)
-        
+
         logger.warning(
             f"Conflict logged: {conflict_id} — {conflict_type.value} "
             f"(severity: {severity}, resolution: {resolution.value})"
         )
-        
+
         return conflict
-    
+
     def _write_to_log(self, conflict: CompressionConflict):
         """Запись конфликта в лог-файл."""
         try:
@@ -156,13 +156,13 @@ class ConflictLogger:
                 f.write(conflict.to_json() + "\n")
         except Exception as e:
             logger.error(f"Failed to write conflict to log: {e}")
-    
+
     def get_conflicts(
         self,
-        conflict_type: Optional[ConflictType] = None,
-        severity: Optional[str] = None,
-        resolved: Optional[bool] = None,
-    ) -> List[CompressionConflict]:
+        conflict_type: ConflictType | None = None,
+        severity: str | None = None,
+        resolved: bool | None = None,
+    ) -> list[CompressionConflict]:
         """
         Получение конфликтов с фильтрацией.
         
@@ -175,18 +175,18 @@ class ConflictLogger:
             Список конфликтов
         """
         conflicts = self.conflicts
-        
+
         if conflict_type:
             conflicts = [c for c in conflicts if c.conflict_type == conflict_type]
-        
+
         if severity:
             conflicts = [c for c in conflicts if c.severity == severity]
-        
+
         if resolved is not None:
             conflicts = [c for c in conflicts if c.resolved == resolved]
-        
+
         return conflicts
-    
+
     def export_to_golden_set(self, path: str = "golden_set_conflicts.json"):
         """
         Экспорт конфликтов в Golden Set для тестов.
@@ -200,13 +200,13 @@ class ConflictLogger:
             "total_conflicts": len(self.conflicts),
             "conflicts": [c.to_dict() for c in self.conflicts],
         }
-        
+
         with open(path, "w", encoding="utf-8") as f:
             json.dump(golden_set, f, indent=2, ensure_ascii=False)
-        
+
         logger.info(f"Exported {len(self.conflicts)} conflicts to Golden Set")
-    
-    def get_metrics(self) -> Dict[str, Any]:
+
+    def get_metrics(self) -> dict[str, Any]:
         """
         Получение метрик конфликтов.
         
@@ -220,23 +220,23 @@ class ConflictLogger:
                 "conflicts_by_severity": {},
                 "resolution_rate": 0.0,
             }
-        
+
         # Подсчёт по типам
         by_type = {}
         for conflict in self.conflicts:
             type_name = conflict.conflict_type.value
             by_type[type_name] = by_type.get(type_name, 0) + 1
-        
+
         # Подсчёт по критичности
         by_severity = {}
         for conflict in self.conflicts:
             severity = conflict.severity
             by_severity[severity] = by_severity.get(severity, 0) + 1
-        
+
         # Rate разрешения
         resolved_count = sum(1 for c in self.conflicts if c.resolved)
         resolution_rate = resolved_count / len(self.conflicts)
-        
+
         return {
             "total_conflicts": len(self.conflicts),
             "conflicts_by_type": by_type,
@@ -245,7 +245,7 @@ class ConflictLogger:
             "critical_conflicts": by_severity.get("CRITICAL", 0),
             "high_conflicts": by_severity.get("HIGH", 0),
         }
-    
+
     def resolve_conflict(self, conflict_id: str, resolved: bool = True):
         """
         Разрешение конфликта.
@@ -259,12 +259,12 @@ class ConflictLogger:
                 conflict.resolved = resolved
                 logger.info(f"Conflict {conflict_id} marked as {'resolved' if resolved else 'unresolved'}")
                 return
-        
+
         logger.warning(f"Conflict {conflict_id} not found")
 
 
 # Global instance для удобного доступа
-_conflict_logger: Optional[ConflictLogger] = None
+_conflict_logger: ConflictLogger | None = None
 
 
 def get_conflict_logger() -> ConflictLogger:
@@ -279,8 +279,8 @@ def log_compression_conflict(
     conflict_type: ConflictType,
     severity: str,
     description: str,
-    original_data: Dict[str, Any],
-    compressed_data: Dict[str, Any],
+    original_data: dict[str, Any],
+    compressed_data: dict[str, Any],
     resolution: ConflictResolution,
 ) -> CompressionConflict:
     """

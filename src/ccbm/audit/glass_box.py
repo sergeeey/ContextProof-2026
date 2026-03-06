@@ -11,10 +11,10 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any
 
-from ccbm.audit import AuditEngine, MerkleTree, VerificationReceipt
+from ccbm.audit import AuditEngine
 
 
 @dataclass
@@ -27,9 +27,9 @@ class AuditEntry:
     confidence: float
     reasoning: str
     merkle_hash: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "step_id": self.step_id,
@@ -49,21 +49,21 @@ class GlassBoxAudit:
     
     Прозрачный аудит всех решений с Merkle Tree гарантиями.
     """
-    
+
     def __init__(self):
         """Инициализация Glass Box Audit."""
         self.audit_engine = AuditEngine()
-        self.entries: List[AuditEntry] = []
+        self.entries: list[AuditEntry] = []
         self._step_counter = 0
-        self._merkle_root: Optional[str] = None
-    
+        self._merkle_root: str | None = None
+
     def log_decision(
         self,
         agent: str,
         decision: str,
         confidence: float,
         reasoning: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> AuditEntry:
         """
         Логирование решения AI.
@@ -79,7 +79,7 @@ class GlassBoxAudit:
             AuditEntry с merkle_hash
         """
         self._step_counter += 1
-        
+
         entry = AuditEntry(
             step_id=self._step_counter,
             timestamp_ns=time.time_ns(),
@@ -89,10 +89,10 @@ class GlassBoxAudit:
             reasoning=reasoning,
             metadata=metadata or {},
         )
-        
+
         # Вычисляем хеш для entry
         entry.merkle_hash = self._compute_entry_hash(entry)
-        
+
         # Добавляем в audit engine
         self.audit_engine.add_transformation(
             original_data=json.dumps({
@@ -111,10 +111,10 @@ class GlassBoxAudit:
                 "type": "decision",
             },
         )
-        
+
         self.entries.append(entry)
         return entry
-    
+
     def finalize(self) -> str:
         """
         Финализация дерева Меркла.
@@ -124,8 +124,8 @@ class GlassBoxAudit:
         """
         self._merkle_root = self.audit_engine.finalize()
         return self._merkle_root
-    
-    def get_audit_trail(self) -> List[Dict]:
+
+    def get_audit_trail(self) -> list[dict]:
         """
         Получение полного audit trail.
         
@@ -133,7 +133,7 @@ class GlassBoxAudit:
             Список всех записей в виде словарей
         """
         return [entry.to_dict() for entry in self.entries]
-    
+
     def verify_integrity(self, fast_mode: bool = True) -> bool:
         """
         Проверка целостности audit trail.
@@ -150,11 +150,11 @@ class GlassBoxAudit:
         """
         if not self.entries:
             return True
-        
+
         # Проверяем что merkle root вычислен
         if not self._merkle_root:
             self.finalize()
-        
+
         if fast_mode:
             # Fast-path: только проверка что root существует
             # O(1) — достаточно для production monitoring
@@ -168,7 +168,7 @@ class GlassBoxAudit:
                 for receipt in receipts
             )
             return all_valid
-    
+
     def verify_integrity_async(self, callback=None) -> str:
         """
         Асинхронная полная проверка (assurance-path).
@@ -179,25 +179,25 @@ class GlassBoxAudit:
         Returns:
             ID задачи верификации
         """
-        import uuid
         import threading
-        
+        import uuid
+
         task_id = str(uuid.uuid4())
-        
+
         def verify_task():
             result = self.verify_integrity(fast_mode=False)
             if callback:
                 callback(task_id, result)
             return result
-        
+
         # Запуск в отдельном потоке (неблокирующе)
         thread = threading.Thread(target=verify_task)
         thread.daemon = True
         thread.start()
-        
+
         return task_id
-    
-    def export_for_blockchain(self) -> Dict:
+
+    def export_for_blockchain(self) -> dict:
         """
         Экспорт для блокчейн-анкоринга.
         
@@ -206,14 +206,14 @@ class GlassBoxAudit:
         """
         if not self._merkle_root:
             self.finalize()
-        
+
         return self.audit_engine.export_for_blockchain()
-    
+
     @staticmethod
     def _compute_entry_hash(entry: AuditEntry) -> str:
         """Вычисление хеша для записи аудита."""
         import hashlib
-        
+
         data = json.dumps({
             "step_id": entry.step_id,
             "timestamp_ns": entry.timestamp_ns,
@@ -222,10 +222,10 @@ class GlassBoxAudit:
             "confidence": entry.confidence,
             "reasoning": entry.reasoning,
         }, sort_keys=True)
-        
+
         return hashlib.sha256(data.encode('utf-8')).hexdigest()
-    
-    def get_summary(self) -> Dict:
+
+    def get_summary(self) -> dict:
         """
         Получение сводки аудита.
         
@@ -238,15 +238,15 @@ class GlassBoxAudit:
                 "merkle_root": None,
                 "integrity_valid": True,
             }
-        
+
         decisions_by_agent = {}
         decisions_by_type = {}
         avg_confidence = sum(e.confidence for e in self.entries) / len(self.entries)
-        
+
         for entry in self.entries:
             decisions_by_agent[entry.agent] = decisions_by_agent.get(entry.agent, 0) + 1
             decisions_by_type[entry.decision] = decisions_by_type.get(entry.decision, 0) + 1
-        
+
         return {
             "total_decisions": len(self.entries),
             "merkle_root": self._merkle_root,
@@ -266,9 +266,9 @@ class GlassBoxReport:
     total_decisions: int
     merkle_root: str
     integrity_valid: bool
-    entries: List[AuditEntry]
-    
-    def to_dict(self) -> Dict:
+    entries: list[AuditEntry]
+
+    def to_dict(self) -> dict:
         """Сериализация в словарь."""
         return {
             "timestamp": self.timestamp,

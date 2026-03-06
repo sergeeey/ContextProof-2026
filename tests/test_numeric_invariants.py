@@ -9,10 +9,10 @@
 """
 
 import pytest
+
 from ccbm.verifier.numeric_invariants import (
-    NumericInvariantVerifier,
     InvariantCheck,
-    VerificationReport,
+    NumericInvariantVerifier,
 )
 
 
@@ -53,7 +53,7 @@ class TestIINChecksum:
         """Извлечение инвариантов из списка ИИН."""
         iins = ["950101300038", "900202400047", "850303500056"]
         invariants = self.verifier.extract_iin_invariants(iins)
-        
+
         assert invariants["count"] == 3.0
         assert invariants["checksum1_sum"] > 0
         assert invariants["checksum2_sum"] > 0
@@ -63,18 +63,18 @@ class TestIINChecksum:
         """Верификация ИИН без изменений."""
         original = ["950101300038", "900202400047"]
         compressed = original.copy()
-        
+
         results = self.verifier.verify_iins(original, compressed)
-        
+
         assert self.verifier.is_all_valid(results) is True
 
     def test_verify_iins_modified(self):
         """Верификация ИИН с изменениями (должна быть COMPROMISED)."""
         original = ["950101300038", "900202400047"]
         compressed = ["950101300039", "900202400048"]  # Изменены последние цифры
-        
+
         results = self.verifier.verify_iins(original, compressed)
-        
+
         # Хотя бы один инвариант должен быть compromised
         assert any(r.status == "COMPROMISED" for r in results.values())
 
@@ -90,7 +90,7 @@ class TestSumInvariants:
         """Вычисление инвариантов сумм."""
         values = [100.0, 200.0, 300.0, 400.0]
         invariants = self.verifier.compute_sum_invariants(values, "test")
-        
+
         assert invariants["test_sum"] == 1000.0
         assert invariants["test_mean"] == 250.0
         assert invariants["test_min"] == 100.0
@@ -101,9 +101,9 @@ class TestSumInvariants:
         """Верификация значений без изменений."""
         original = [100.0, 200.0, 300.0, 400.0]
         compressed = original.copy()
-        
+
         results = self.verifier.verify_values(original, compressed, "money")
-        
+
         assert self.verifier.is_all_valid(results) is True
         assert all(r.status == "VERIFIED" for r in results.values())
 
@@ -111,9 +111,9 @@ class TestSumInvariants:
         """Верификация с маленькой ошибкой."""
         original = [100.0, 200.0, 300.0, 400.0]
         compressed = [100.001, 200.001, 300.001, 400.001]
-        
+
         results = self.verifier.verify_values(original, compressed, "money")
-        
+
         # Маленькая ошибка должна быть верифицирована
         assert all(r.is_valid for r in results.values())
 
@@ -121,9 +121,9 @@ class TestSumInvariants:
         """Верификация с большой ошибкой."""
         original = [100.0, 200.0, 300.0, 400.0]
         compressed = [110.0, 210.0, 310.0, 410.0]  # +10 к каждому
-        
+
         results = self.verifier.verify_values(original, compressed, "money")
-        
+
         # Большая ошибка должна быть COMPROMISED
         assert any(r.status == "COMPROMISED" for r in results.values())
 
@@ -139,10 +139,10 @@ class TestVerificationReport:
         """Получение сводного отчёта."""
         original = [100.0, 200.0, 300.0, 400.0]
         compressed = original.copy()
-        
+
         results = self.verifier.verify_values(original, compressed, "money")
         summary = self.verifier.get_summary(results)
-        
+
         assert "Отчёт верификации инвариантов" in summary
         assert "Всего: 5" in summary  # sum, mean, min, max, count
         assert "Верифицировано: 5" in summary
@@ -227,7 +227,7 @@ class TestEdgeCases:
         """Пустой список значений."""
         original = []
         compressed = []
-        
+
         # Должна быть ошибка или обработка
         with pytest.raises(ValueError):
             self.verifier.verify_values(original, compressed, "empty")
@@ -236,7 +236,7 @@ class TestEdgeCases:
         """Единственное значение."""
         original = [100.0]
         compressed = [100.0]
-        
+
         # Одиночное значение теперь поддерживается (упрощённая верификация)
         results = self.verifier.verify_values(original, compressed, "single")
         assert self.verifier.is_all_valid(results) is True
@@ -245,9 +245,9 @@ class TestEdgeCases:
         """Разная длина массивов."""
         original = [100.0, 200.0]
         compressed = [100.0]
-        
+
         # Должна быть ошибка
         with pytest.raises(ValueError) as exc_info:
             self.verifier.verify_values(original, compressed, "mismatch")
-        
+
         assert "длины" in str(exc_info.value).lower() or "length" in str(exc_info.value).lower()

@@ -8,8 +8,7 @@
 - L4: Контекстное наполнение
 """
 
-import pytest
-from ccbm.analyzer import CriticalityAnalyzer, Span, CriticalityLevel
+from ccbm.analyzer import CriticalityAnalyzer, CriticalityLevel, Span
 
 
 class TestCriticalityAnalyzer:
@@ -23,7 +22,7 @@ class TestCriticalityAnalyzer:
         """Извлечение ИИН (12 цифр)."""
         text = "ИИН сотрудника 950101300038 указан в договоре."
         spans = self.analyzer.analyze(text)
-        
+
         iin_spans = [s for s in spans if s.level == CriticalityLevel.L1 and s.metadata.get("type") == "iin_bin"]
         assert len(iin_spans) > 0
         assert "950101300038" in text
@@ -32,7 +31,7 @@ class TestCriticalityAnalyzer:
         """Извлечение даты в формате ДД.ММ.ГГГГ."""
         text = "Договор заключён 15.03.2026 года."
         spans = self.analyzer.analyze(text)
-        
+
         date_spans = [s for s in spans if s.level == CriticalityLevel.L1 and s.metadata.get("type") == "date"]
         assert len(date_spans) > 0
         assert any("15.03.2026" in s.text for s in date_spans)
@@ -41,7 +40,7 @@ class TestCriticalityAnalyzer:
         """Извлечение валюты KZT."""
         text = "Сумма договора составляет 150000 KZT."
         spans = self.analyzer.analyze(text)
-        
+
         currency_spans = [s for s in spans if s.level == CriticalityLevel.L1 and s.metadata.get("type") == "currency"]
         assert len(currency_spans) > 0
         assert any("150000 KZT" in s.text for s in currency_spans)
@@ -50,7 +49,7 @@ class TestCriticalityAnalyzer:
         """Извлечение валюты со символом ₸."""
         text = "Заработная плата 500000 ₸ в месяц."
         spans = self.analyzer.analyze(text)
-        
+
         currency_spans = [s for s in spans if s.level == CriticalityLevel.L1 and s.metadata.get("type") == "currency"]
         # Проверяем что хоть что-то найдено (символ или текст с цифрами)
         assert len(currency_spans) > 0 or "500000" in text
@@ -59,7 +58,7 @@ class TestCriticalityAnalyzer:
         """Извлечение валюты USD."""
         text = "Контракт на сумму $10000 долларов."
         spans = self.analyzer.analyze(text)
-        
+
         currency_spans = [s for s in spans if s.level == CriticalityLevel.L1 and s.metadata.get("type") == "currency"]
         # Проверяем что хоть что-то найдено
         assert len(currency_spans) > 0 or "$10000" in text
@@ -68,7 +67,7 @@ class TestCriticalityAnalyzer:
         """Извлечение нескольких спанов разных типов."""
         text = "ИИН 950101300038, дата 15.03.2026, сумма 150000 KZT."
         spans = self.analyzer.analyze(text)
-        
+
         l1_spans = [s for s in spans if s.level == CriticalityLevel.L1]
         assert len(l1_spans) >= 3  # ИИН, дата, валюта
 
@@ -76,7 +75,7 @@ class TestCriticalityAnalyzer:
         """L4: контекстное наполнение между критическими спанами."""
         text = "ИИН 950101300038 указан в договоре."
         spans = self.analyzer.analyze(text)
-        
+
         l4_spans = [s for s in spans if s.level == CriticalityLevel.L4]
         assert len(l4_spans) > 0
         # L4 должен содержать текст между/вокруг критических спанов
@@ -85,7 +84,7 @@ class TestCriticalityAnalyzer:
         """Спаны должны быть отсортированы по позиции."""
         text = "Дата 01.01.2025, сумма 1000 KZT."
         spans = self.analyzer.analyze(text)
-        
+
         # Проверяем сортировку по start
         for i in range(len(spans) - 1):
             assert spans[i].start <= spans[i + 1].start
@@ -94,7 +93,7 @@ class TestCriticalityAnalyzer:
         """Уровень уверенности для спанов."""
         text = "ИИН 950101300038."
         spans = self.analyzer.analyze(text)
-        
+
         for span in spans:
             assert 0.0 <= span.confidence <= 1.0
 
@@ -156,7 +155,7 @@ class TestSpanDataclass:
     def test_span_immutable_metadata(self):
         """Метаданные должны быть неизменяемыми (frozen)."""
         from dataclasses import replace
-        
+
         span = Span(
             text="test",
             start=0,
@@ -207,10 +206,10 @@ class TestEdgeCases:
         """Текст без критических спанов."""
         text = "Это обычный текст без чисел и дат."
         spans = self.analyzer.analyze(text)
-        
+
         l1_spans = [s for s in spans if s.level == CriticalityLevel.L1]
         assert len(l1_spans) == 0
-        
+
         # Должен быть L4 контекст
         l4_spans = [s for s in spans if s.level == CriticalityLevel.L4]
         assert len(l4_spans) > 0
@@ -219,7 +218,7 @@ class TestEdgeCases:
         """Текст только с критическими спанами."""
         text = "950101300038"
         spans = self.analyzer.analyze(text)
-        
+
         l1_spans = [s for s in spans if s.level == CriticalityLevel.L1]
         assert len(l1_spans) > 0
 
@@ -228,6 +227,6 @@ class TestEdgeCases:
         # Число которое может быть и датой и частью ИИН
         text = "12345678901234567890"
         spans = self.analyzer.analyze(text)
-        
+
         # Должны быть найдены какие-то паттерны
         assert len(spans) > 0

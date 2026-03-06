@@ -18,24 +18,23 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
-    Tool,
-    TextContent,
     Resource,
-    ResourceTemplate,
+    TextContent,
+    Tool,
 )
 
 from ccbm import (
-    CriticalityAnalyzer,
-    OptimizationEngine,
-    ChernoffVerifier,
-    NumericInvariantVerifier,
     AuditEngine,
+    ChernoffVerifier,
+    CriticalityAnalyzer,
+    NumericInvariantVerifier,
+    OptimizationEngine,
     create_audit_report,
 )
 
@@ -53,7 +52,7 @@ ccbm_server = Server("ccbm")
 # ============================================================================
 
 @ccbm_server.list_tools()
-async def list_tools() -> List[Tool]:
+async def list_tools() -> list[Tool]:
     """Список доступных инструментов."""
     return [
         Tool(
@@ -159,11 +158,11 @@ async def list_tools() -> List[Tool]:
 @ccbm_server.call_tool()
 async def call_tool(
     name: str,
-    arguments: Dict[str, Any],
-) -> List[TextContent]:
+    arguments: dict[str, Any],
+) -> list[TextContent]:
     """Вызов инструмента."""
     logger.info(f"Вызов инструмента: {name}, аргументы: {arguments}")
-    
+
     try:
         if name == "optimize_context":
             result = await optimize_context(
@@ -190,9 +189,9 @@ async def call_tool(
             )
         else:
             raise ValueError(f"Неизвестный инструмент: {name}")
-        
+
         return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False, indent=2))]
-    
+
     except Exception as e:
         logger.error(f"Ошибка при выполнении {name}: {e}")
         return [TextContent(
@@ -209,7 +208,7 @@ async def optimize_context(
     text: str,
     domain: str = "general",
     target_budget: int = 4000,
-) -> Dict:
+) -> dict:
     """
     Оптимизация текста с верификацией.
     
@@ -219,15 +218,15 @@ async def optimize_context(
     # Анализ спанов
     analyzer = CriticalityAnalyzer(language=domain)
     spans = analyzer.analyze(text)
-    
+
     # Оптимизация
     optimizer = OptimizationEngine(target_budget=target_budget)
     result = optimizer.optimize(spans)
-    
+
     # Верификация (если есть числовые данные)
     verification_status = "skipped"
     verifier = ChernoffVerifier(domain=domain)
-    
+
     # Аудит
     audit = AuditEngine()
     receipt = audit.add_transformation(
@@ -240,7 +239,7 @@ async def optimize_context(
         },
     )
     merkle_root = audit.finalize()
-    
+
     return {
         "status": "success",
         "optimized_text": result.optimized_text,
@@ -259,30 +258,29 @@ async def optimize_context(
 
 
 async def verify_invariants(
-    original_values: List[float],
-    compressed_values: List[float],
+    original_values: list[float],
+    compressed_values: list[float],
     domain: str = "financial",
-) -> Dict:
+) -> dict:
     """
     Верификация числовых инвариантов.
     
     Returns:
         Dict с результатом верификации
     """
-    import numpy as np
-    
+
     verifier = NumericInvariantVerifier(domain=domain)
-    
+
     # Верификация значений
     checks = verifier.verify_values(
         original_values=original_values,
         compressed_values=compressed_values,
         name="values",
     )
-    
+
     all_valid = verifier.is_all_valid(checks)
     summary = verifier.get_summary(checks)
-    
+
     return {
         "status": "success" if all_valid else "compromised",
         "all_valid": all_valid,
@@ -307,7 +305,7 @@ async def verify_invariants(
 async def analyze_spans(
     text: str,
     language: str = "kk",
-) -> Dict:
+) -> dict:
     """
     Анализ спанов по уровням критичности.
     
@@ -316,7 +314,7 @@ async def analyze_spans(
     """
     analyzer = CriticalityAnalyzer(language=language)
     spans = analyzer.analyze(text)
-    
+
     # Группировка по уровням
     level_map = {
         "critical_numbers": "L1_critical_numbers",
@@ -324,7 +322,7 @@ async def analyze_spans(
         "pii": "L3_pii",
         "context_fill": "L4_context_fill",
     }
-    
+
     grouped = {
         "L1_critical_numbers": [],
         "L2_legal_policies": [],
@@ -342,7 +340,7 @@ async def analyze_spans(
                 "confidence": span.confidence,
                 "metadata": span.metadata,
             })
-    
+
     return {
         "status": "success",
         "total_spans": len(spans),
@@ -357,8 +355,8 @@ async def analyze_spans(
 async def get_audit_receipt(
     original_data: str,
     compressed_data: str,
-    metadata: Dict[str, Any] = None,
-) -> Dict:
+    metadata: dict[str, Any] = None,
+) -> dict:
     """
     Получение аудиторской квитанции.
     
@@ -366,19 +364,19 @@ async def get_audit_receipt(
         Dict с квитанцией и доказательством Меркла
     """
     audit = AuditEngine()
-    
+
     receipt = audit.add_transformation(
         original_data=original_data,
         compressed_data=compressed_data,
         metadata=metadata or {},
     )
-    
+
     merkle_root = audit.finalize()
     is_verified = audit.verify_receipt(receipt)
-    
+
     # Создание отчёта
     report = create_audit_report(audit)
-    
+
     return {
         "status": "success",
         "receipt": receipt.to_dict(),
@@ -394,7 +392,7 @@ async def get_audit_receipt(
 # ============================================================================
 
 @ccbm_server.list_resources()
-async def list_resources() -> List[Resource]:
+async def list_resources() -> list[Resource]:
     """Список доступных ресурсов."""
     return [
         Resource(
@@ -455,7 +453,7 @@ async def read_resource(uri: str) -> str:
 async def main():
     """Запуск MCP сервера."""
     logger.info("Запуск CCBM MCP Server...")
-    
+
     async with stdio_server() as (read_stream, write_stream):
         await ccbm_server.run(
             read_stream,

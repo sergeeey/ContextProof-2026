@@ -5,19 +5,18 @@ Verifier — математическая верификация данных д
 """
 
 from .chernoff_bound import (
-    ChernoffVerifier,
-    ChernoffOrder,
-    DataRegularity,
     CertifiedBound,
+    ChernoffOrder,
+    ChernoffVerifier,
+    DataRegularity,
     compute_certified_bound,
-    verify_convergence_order,
-    n_steps_for_tolerance,
     effective_order,
+    n_steps_for_tolerance,
+    verify_convergence_order,
 )
-
 from .numeric_invariants import (
-    NumericInvariantVerifier,
     InvariantCheck,
+    NumericInvariantVerifier,
     VerificationReport,
 )
 

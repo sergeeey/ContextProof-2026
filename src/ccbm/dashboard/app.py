@@ -11,7 +11,6 @@ Streamlit приложение для мониторинга:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import streamlit as st
 
@@ -75,27 +74,27 @@ def load_quality_gates():
 # Страница Overview
 if page == "📊 Overview":
     st.header("📊 Project Overview")
-    
+
     # Метрики
     metrics = load_metrics()
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("Tests Passed", f"{metrics['tests_passed']}/{metrics['tests_total']}", "100%")
-    
+
     with col2:
         st.metric("Components", metrics['components'], "+1 this week")
-    
+
     with col3:
         st.metric("Code Coverage", f"{metrics['coverage']}%", "✅")
-    
+
     with col4:
         st.metric("Security Score", f"{metrics['security_score']}/10", "⚠️")
-    
+
     # Графики
     st.subheader("📈 Project Evolution")
-    
+
     evolution_data = {
         "Phase 1": 93,
         "Phase 2": 125,
@@ -105,13 +104,13 @@ if page == "📊 Overview":
         "Phase 6": 197,
         "Phase 7": 222,
     }
-    
+
     st.line_chart(list(evolution_data.values()))
     st.caption("Рост количества тестов по фазам")
-    
+
     # Компоненты
     st.subheader("🧩 Components")
-    
+
     components = {
         "Criticality Analyzer": "✅",
         "Optimization Engine": "✅",
@@ -125,38 +124,38 @@ if page == "📊 Overview":
         "Security Audit": "✅",
         "KazRoBERTa NER": "✅",
     }
-    
+
     for comp, status in components.items():
         st.write(f"{status} {comp}")
 
 # Страница Security Audit
 elif page == "🔒 Security Audit":
     st.header("🔒 Security Audit")
-    
+
     # Score
     security_score = 6.0
     st.metric("Security Score", f"{security_score}/10")
-    
+
     # Progress bar
     st.progress(security_score / 10.0)
-    
+
     # Findings
     st.subheader("📋 Findings Summary")
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.error("🔴 CRITICAL: 0")
-    
+
     with col2:
         st.warning("🟠 HIGH: 0")
-    
+
     with col3:
         st.info("🟡 MEDIUM: 4")
-    
+
     with col4:
         st.success("🟢 LOW: 0")
-    
+
     # Report
     st.subheader("📄 Full Report")
     report = load_security_report()
@@ -165,28 +164,28 @@ elif page == "🔒 Security Audit":
 # Страница Quality Gates
 elif page == "⚡ Quality Gates":
     st.header("⚡ Quality Gates")
-    
+
     gates = load_quality_gates()
-    
+
     # Readiness Score
     st.metric("Readiness Score", f"{gates['readiness_score']:.1%}")
-    
+
     # Components
     st.subheader("📊 Component Scores")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.metric("Correctness (30%)", f"{gates['correctness']:.0%}")
         st.metric("Validation (25%)", f"{gates['validation']:.0%}")
-    
+
     with col2:
         st.metric("Coverage (20%)", f"{gates['coverage']:.0%}")
         st.metric("Monitoring (15%)", f"{gates['monitoring']:.0%}")
-    
+
     # Chart
     st.subheader("📊 Score Breakdown")
-    
+
     score_data = {
         "Correctness": gates['correctness'] * 100,
         "Validation": gates['validation'] * 100,
@@ -194,9 +193,9 @@ elif page == "⚡ Quality Gates":
         "Monitoring": gates['monitoring'] * 100,
         "Documentation": gates['documentation'] * 100,
     }
-    
+
     st.bar_chart(score_data)
-    
+
     # Verdict
     if gates['readiness_score'] >= 0.95:
         st.success("✅ MERGE APPROVED")
@@ -208,12 +207,12 @@ elif page == "⚡ Quality Gates":
 # Страница Audit Trail
 elif page == "📝 Audit Trail":
     st.header("📝 Glass Box Audit Trail")
-    
+
     st.info("🚧 В разработке: Glass Box Audit visualization")
-    
+
     # Пример записей
     st.subheader("Recent Audit Entries")
-    
+
     sample_entries = [
         {
             "step_id": 1,
@@ -230,24 +229,24 @@ elif page == "📝 Audit Trail":
             "confidence": 0.99,
         },
     ]
-    
+
     for entry in sample_entries:
         with st.expander(f"Step {entry['step_id']}: {entry['agent']} — {entry['decision']}"):
             st.write(f"**Timestamp:** {entry['timestamp']}")
             st.write(f"**Confidence:** {entry['confidence']:.0%}")
-            st.write(f"**Merkle Hash:** `0x...`")
+            st.write("**Merkle Hash:** `0x...`")
 
 # Страница Settings
 elif page == "⚙️ Settings":
     st.header("⚙️ Settings")
-    
+
     st.subheader("Project Info")
-    st.write(f"**Version:** 0.7.0")
-    st.write(f"**Last Updated:** 2026-03-06")
-    st.write(f"**Python:** 3.11+")
-    
+    st.write("**Version:** 0.7.0")
+    st.write("**Last Updated:** 2026-03-06")
+    st.write("**Python:** 3.11+")
+
     st.subheader("Export")
-    
+
     if st.button("📥 Export Metrics (JSON)"):
         metrics = load_metrics()
         st.download_button(
@@ -256,7 +255,7 @@ elif page == "⚙️ Settings":
             file_name="ccbm_metrics.json",
             mime="application/json",
         )
-    
+
     st.subheader("Links")
     st.markdown("""
     - [GitHub Repository](https://github.com/sergeeey/ContextProof-2026)
