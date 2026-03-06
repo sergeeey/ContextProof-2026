@@ -2,8 +2,8 @@
 
 **Certified Context Budget Manager** — детерминированная оптимизация и математическая верификация контекстного окна LLM в архитектуре CCBM.
 
-**Версия:** 1.1.0  
-**Статус:** ✅ Production Ready + Enhanced (242 теста пройдено)
+**Версия:** 2.0.1  
+**Статус:** ✅ Production Ready (291 тест пройден)
 
 ## 🎯 Цель
 
@@ -118,8 +118,11 @@ MIT
 - Закон РК «Об искусственном интеллекте» № 230-VIII
 - Цифровой кодекс Республики Казахстан
 
+
 ## 📚 Документация
 
+- [Release Notes v2.0.1](RELEASE_NOTES_v2.0.1.md) ← АКТУАЛЬНО
+- [Release Notes v2.0.0](RELEASE_NOTES_v2.0.0.md)
 - [Release Notes v1.0.0](RELEASE_NOTES_v1.0.0.md)
 - [Phase 5.x Enhancements](docs/PHASE5X_ENHANCEMENTS.md) ← НОВОЕ
 - [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md)
