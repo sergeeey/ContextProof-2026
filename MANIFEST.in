@@ -1,0 +1,20 @@
+# MANIFEST.in for CCBM
+include README.md
+include LICENSE
+include requirements.txt
+include .env.example
+include pyproject.toml
+
+recursive-include src/ccbm *.py
+recursive-include docs *.md
+recursive-include docker *
+recursive-include tests *.py
+recursive-include .github/workflows *.yml
+
+prune __pycache__
+prune *.pyc
+prune .pytest_cache
+prune .mypy_cache
+prune .ruff_cache
+prune htmlcov
+prune .coverage

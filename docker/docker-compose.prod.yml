@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # CCBM API Server
+  ccmb-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - CCBM_ENV=production
+      - CCBM_LOG_LEVEL=INFO
+    volumes:
+      - ../data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import ccbm; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # CCBM Dashboard
+  ccmb-dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8501:8501"
+    command: ["python", "-m", "ccbm.dashboard.app"]
+    depends_on:
+      - ccmb-api
+    restart: unless-stopped
+
+  # Redis (cache)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+
+networks:
+  default:
+    name: ccmb-network
