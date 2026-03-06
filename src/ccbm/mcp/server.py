@@ -398,12 +398,6 @@ async def list_resources() -> List[Resource]:
     """Список доступных ресурсов."""
     return [
         Resource(
-            uri="ccbm://stats",
-            name="CCBM Statistics",
-            description="Статистика использования CCBM",
-            mimeType="application/json",
-        ),
-        Resource(
             uri="ccbm://version",
             name="CCBM Version",
             description="Информация о версии CCBM",
@@ -417,16 +411,18 @@ async def read_resource(uri: str) -> str:
     """Чтение ресурса."""
     if uri == "ccbm://stats":
         stats = {
-            "version": "0.2.0",
-            "tests_passed": 125,
-            "components": 5,
+            "version": "2.0.0",
+            "tests_passed": 291,
+            "components": 16,
             "timestamp": datetime.utcnow().isoformat(),
         }
         return json.dumps(stats, indent=2)
-    
+
     elif uri == "ccbm://version":
         version_info = {
-            "version": "0.2.0",
+            "version": "2.0.0",
+            "tests_passed": 291,
+            "components": 16,
             "python_version": "3.11+",
             "mcp_version": "1.0.0+",
             "features": [
@@ -435,10 +431,19 @@ async def read_resource(uri: str) -> str:
                 "Chernoff Verifier",
                 "Numeric Invariant Verifier",
                 "Audit Engine (Merkle Trees)",
+                "Glass Box Audit",
+                "MCP Server",
+                "Quality Gates",
+                "Agentic Metrics",
+                "Security Audit",
+                "KazRoBERTa NER",
+                "Dashboard",
+                "Information Contract",
+                "Context Replay",
             ],
         }
         return json.dumps(version_info, indent=2)
-    
+
     else:
         raise ValueError(f"Неизвестный ресурс: {uri}")
 

@@ -266,4 +266,4 @@ elif page == "⚙️ Settings":
 
 # Footer
 st.markdown("---")
-st.caption(f"CCBM Dashboard v0.7.0 | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.caption(f"CCBM Dashboard v2.0.0 | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
