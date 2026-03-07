@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # CCBM API Server
-  ccmb-api:
+  ccbm-api:
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   # CCBM Dashboard
-  ccmb-dashboard:
+  ccbm-dashboard:
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -29,7 +29,7 @@ services:
       - "8501:8501"
     command: ["python", "-m", "ccbm.dashboard.app"]
     depends_on:
-      - ccmb-api
+      - ccbm-api
     restart: unless-stopped
 
   # Redis (cache)
@@ -46,4 +46,4 @@ volumes:
 
 networks:
   default:
-    name: ccmb-network
+    name: ccbm-network
