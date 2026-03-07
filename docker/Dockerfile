@@ -33,9 +33,9 @@ COPY pyproject.toml .
 # Install CCBM
 RUN pip install -e .
 
-# Expose ports
-EXPOSE 8000  # API
-EXPOSE 8501  # Dashboard
+# Expose ports (API, Dashboard)
+EXPOSE 8000
+EXPOSE 8501
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
