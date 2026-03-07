@@ -63,3 +63,6 @@ temp/
 *.pem
 *.key
 secrets/
+
+# Security scan artifacts (local)
+bandit-current.json
