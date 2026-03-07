@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import UTC, datetime
 from typing import Any
 
+import numpy as np
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
@@ -35,6 +37,7 @@ from ccbm import (
     CriticalityAnalyzer,
     NumericInvariantVerifier,
     OptimizationEngine,
+    __version__,
     create_audit_report,
 )
 
@@ -155,13 +158,29 @@ async def list_tools() -> list[Tool]:
     ]
 
 
+def _sanitize_args_for_log(name: str, arguments: dict[str, Any]) -> str:
+    """Лог без сырых данных: только имя инструмента и метаданные (длины, ключи)."""
+    parts = [f"tool={name}"]
+    if "text" in arguments:
+        parts.append(f"text_len={len(arguments['text'])}")
+    if "original_data" in arguments:
+        parts.append(f"original_len={len(arguments['original_data'])}")
+    if "compressed_data" in arguments:
+        parts.append(f"compressed_len={len(arguments['compressed_data'])}")
+    if "domain" in arguments:
+        parts.append(f"domain={arguments['domain']}")
+    if "language" in arguments:
+        parts.append(f"language={arguments['language']}")
+    return ", ".join(parts)
+
+
 @ccbm_server.call_tool()
 async def call_tool(
     name: str,
     arguments: dict[str, Any],
 ) -> list[TextContent]:
     """Вызов инструмента."""
-    logger.info(f"Вызов инструмента: {name}, аргументы: {arguments}")
+    logger.info(_sanitize_args_for_log(name, arguments))
 
     try:
         if name == "optimize_context":
@@ -215,17 +234,38 @@ async def optimize_context(
     Returns:
         Dict с оптимизированным текстом и метаданными
     """
-    # Анализ спанов
-    analyzer = CriticalityAnalyzer(language=domain)
+    # Анализ спанов (language — код языка kk/ru/en, не домен)
+    analyzer = CriticalityAnalyzer(language="kk")
     spans = analyzer.analyze(text)
 
     # Оптимизация
     optimizer = OptimizationEngine(target_budget=target_budget)
     result = optimizer.optimize(spans)
 
-    # Верификация (если есть числовые данные)
+    # Верификация числовых данных через Chernoff (если есть числа)
     verification_status = "skipped"
-    ChernoffVerifier(domain=domain)
+    _num_re = re.compile(r"\b\d+[.,]?\d*\b")
+
+    def _to_floats(raw: list[str]) -> list[float]:
+        out: list[float] = []
+        for s in raw:
+            try:
+                out.append(float(s.replace(",", ".")))
+            except ValueError:
+                continue
+        return out
+
+    orig_nums = _to_floats(_num_re.findall(text))
+    comp_nums = _to_floats(_num_re.findall(result.optimized_text))
+    if orig_nums and comp_nums:
+        n = min(len(orig_nums), len(comp_nums))
+        chernoff = ChernoffVerifier(domain=domain)
+        bound = chernoff.verify(
+            np.array(orig_nums[:n]),
+            np.array(comp_nums[:n]),
+            data_name="mcp_optimize_context",
+        )
+        verification_status = "verified" if bound.is_certified else "compromised"
 
     # Аудит
     audit = AuditEngine()
@@ -396,6 +436,12 @@ async def list_resources() -> list[Resource]:
     """Список доступных ресурсов."""
     return [
         Resource(
+            uri="ccbm://stats",
+            name="CCBM Runtime Stats",
+            description="Runtime-статистика CCBM (версия, компоненты, timestamp)",
+            mimeType="application/json",
+        ),
+        Resource(
             uri="ccbm://version",
             name="CCBM Version",
             description="Информация о версии CCBM",
@@ -409,8 +455,8 @@ async def read_resource(uri: str) -> str:
     """Чтение ресурса."""
     if uri == "ccbm://stats":
         stats = {
-            "version": "2.0.0",
-            "tests_passed": 291,
+            "version": __version__,
+            "tests_passed": None,
             "components": 16,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -418,8 +464,8 @@ async def read_resource(uri: str) -> str:
 
     elif uri == "ccbm://version":
         version_info = {
-            "version": "2.0.0",
-            "tests_passed": 291,
+            "version": __version__,
+            "tests_passed": None,
             "components": 16,
             "python_version": "3.11+",
             "mcp_version": "1.0.0+",
